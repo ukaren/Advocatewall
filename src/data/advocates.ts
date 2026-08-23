@@ -32,8 +32,8 @@ export const ADVOCATES_LIST: AdvocateProfile[] = [
       60: 549,
     },
     isAvailableNow: true,
-    phone: '+91 98670 15157',
-    whatsapp: '919867015157',
+    phone: '+91 98765 43210',
+    whatsapp: '919876543210',
     badge: 'Practicing Advocate',
   },
 ];

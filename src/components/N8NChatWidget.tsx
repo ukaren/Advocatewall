@@ -62,8 +62,8 @@ export const N8NChatWidget: React.FC = () => {
           perMinuteRate: 10,
           slotRates: { 15: 149, 30: 289, 45: 429, 60: 549 },
           isAvailableNow: true,
-          phone: '+91 98670 15157',
-          whatsapp: '919867015157',
+          phone: '+91 98765 43210',
+          whatsapp: '919876543210',
         };
         startCallWithAdvocate(advocate, 15);
       },

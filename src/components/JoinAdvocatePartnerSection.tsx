@@ -660,7 +660,7 @@ export const JoinAdvocatePartnerSection: React.FC = () => {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4" />
-                <span>Fast-Track via WhatsApp (+91 98670 15157)</span>
+                <span>Fast-Track via WhatsApp</span>
               </a>
 
               <button
@@ -769,7 +769,7 @@ export const JoinAdvocatePartnerSection: React.FC = () => {
                         setForm({ ...form, phone: e.target.value });
                         if (errors.phone) setErrors({ ...errors, phone: '' });
                       }}
-                      placeholder="+91 98670 15157"
+                      placeholder="+91 98765 43210"
                       className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all ${
                         errors.phone ? 'border-rose-400' : 'border-slate-200'
                       }`}
@@ -1009,7 +1009,7 @@ export const JoinAdvocatePartnerSection: React.FC = () => {
                         type="text"
                         value={form.payoutUpiOrAccount}
                         onChange={(e) => setForm({ ...form, payoutUpiOrAccount: e.target.value })}
-                        placeholder="e.g. advocate@okhdfcbank or 9867015157@upi"
+                        placeholder="e.g. advocate@okhdfcbank or advocate@upi"
                         className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
                       />
                     </div>

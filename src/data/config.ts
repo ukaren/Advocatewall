@@ -7,9 +7,9 @@ export const BUSINESS_CONFIG: BusinessConfig = {
   barRegistration: "Bar Council Registration: D/5120/2022",
   tagline: "Legal Help. Simplified.",
   subTagline: "Professional, confidential and transparent legal services & consultations, available online.",
-  phone: "+91 98670 15157",
-  phoneRaw: "+919867015157",
-  whatsapp: "919867015157", // International format without +
+  phone: "+91 98765 43210",
+  phoneRaw: "+919876543210",
+  whatsapp: "919876543210", // International format without +
   email: "consult@advocatwalla.com",
   address: "Chamber No. 412, Lawyers Chambers Block, High Court Complex, New Delhi 110001",
   city: "New Delhi, India",

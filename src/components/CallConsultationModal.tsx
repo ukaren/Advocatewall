@@ -553,7 +553,7 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
                         setClientPhone(e.target.value);
                         if (errors.phone) setErrors({ ...errors, phone: '' });
                       }}
-                      placeholder="+91 98670 15157"
+                      placeholder="+91 98765 43210"
                       className={`w-full px-3.5 py-2 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all ${
                         errors.phone ? 'border-rose-400' : 'border-slate-200'
                       }`}

@@ -33,6 +33,7 @@ import {
   FIVE_PREROGATIVE_WRITS,
   ConstitutionArticle
 } from '../data/constitutionData';
+import { BUSINESS_CONFIG } from '../data/config';
 import { useCart } from '../context/CartContext';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 
@@ -614,11 +615,11 @@ export const ConstitutionSection: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto flex-shrink-0">
             <a
-              href="tel:+919867015157"
+              href={`tel:${BUSINESS_CONFIG.phoneRaw}`}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-md"
             >
               <PhoneCall className="w-4 h-4" />
-              <span>Call Advocate: 98670 15157</span>
+              <span>Call Advocate: {BUSINESS_CONFIG.phone}</span>
             </a>
             <a
               href={getDirectWhatsAppUrl("Hello Advocate,\nI need constitutional legal counsel and advice on filing a Writ Petition in the High Court.")}

@@ -89,9 +89,9 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
     source: "Advocate Legal Portal",
     callDetails: {
       clientName: "Rahul Sharma",
-      clientPhone: "+91 98123 45678",
+      clientPhone: "+91 98670 15157",
       advocateName: "Advocate Seema Jha",
-      advocatePhone: "+91 98765 43210",
+      advocatePhone: "+91 98670 15157",
       durationMinutes: 15,
       ratePerMinute: 10,
       totalCost: 149,
@@ -99,8 +99,8 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
     },
     telephonyAction: {
       action: "bridge_call",
-      from: "+91 98123 45678",
-      to: "+91 98765 43210",
+      from: "+91 98670 15157",
+      to: "+91 98670 15157",
       recordCall: true
     }
   };

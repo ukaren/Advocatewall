@@ -8,7 +8,42 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+// Allow JSON body up to 25MB for document attachments
+app.use(express.json({ limit: "25mb" }));
+app.use(express.urlencoded({ extended: true, limit: "25mb" }));
+
+// In-memory partner applications store
+interface PartnerApplicationRecord {
+  id: string;
+  applicationId: string;
+  submittedAt: string;
+  status: 'submitted' | 'under_review' | 'verified' | 'active';
+  fullName: string;
+  email: string;
+  phone: string;
+  barRegistrationNo: string;
+  stateBarCouncil: string;
+  experienceYears: number;
+  qualification: string;
+  primaryCourts: string[];
+  specializations: string[];
+  perMinuteRateProposed: number;
+  consultationModes: string[];
+  city: string;
+  state: string;
+  chamberAddress: string;
+  payoutUpiOrAccount: string;
+  bio: string;
+  documentsSummary: {
+    barCertificate: { name: string; size: number; type: string } | null;
+    aadhaarCard: { name: string; size: number; type: string } | null;
+    addressProof: { name: string; size: number; type: string } | null;
+    idCardOrCop: { name: string; size: number; type: string } | null;
+    profilePhoto: { name: string; size: number; type: string } | null;
+  };
+}
+
+const partnerApplications: PartnerApplicationRecord[] = [];
 
 // In-memory log of telephony & n8n webhook events for real-time visibility
 interface TelephonyLog {
@@ -276,7 +311,202 @@ app.post("/api/webhooks/n8n", (req, res) => {
   res.json({ received: true, timestamp: new Date().toISOString() });
 });
 
-// 6. Vite / Static Server integration
+// 6. Advocate Business Partner Registration API
+app.post("/api/advocates/join-partner", async (req, res) => {
+  try {
+    const {
+      fullName,
+      email,
+      phone,
+      barRegistrationNo,
+      stateBarCouncil = "Delhi Bar Council",
+      experienceYears = 1,
+      qualification = "LL.B.",
+      primaryCourts = [],
+      specializations = [],
+      perMinuteRateProposed = 10,
+      consultationModes = ["Phone Call"],
+      city = "",
+      state = "",
+      chamberAddress = "",
+      payoutUpiOrAccount = "",
+      bio = "",
+      documents = {},
+      declarationAccepted = true
+    } = req.body;
+
+    if (!fullName || !phone || !barRegistrationNo) {
+      return res.status(400).json({
+        success: false,
+        error: "Full Name, Mobile Number, and Bar Registration Number are required."
+      });
+    }
+
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const applicationId = `ADV-PTR-${Date.now().toString().slice(-4)}${randomNum}`;
+    const timestamp = new Date().toISOString();
+
+    const record: PartnerApplicationRecord = {
+      id: `PTR-${Date.now()}`,
+      applicationId,
+      submittedAt: timestamp,
+      status: "submitted",
+      fullName,
+      email,
+      phone,
+      barRegistrationNo,
+      stateBarCouncil,
+      experienceYears: Number(experienceYears),
+      qualification,
+      primaryCourts: Array.isArray(primaryCourts) ? primaryCourts : [],
+      specializations: Array.isArray(specializations) ? specializations : [],
+      perMinuteRateProposed: Number(perMinuteRateProposed),
+      consultationModes: Array.isArray(consultationModes) ? consultationModes : [],
+      city,
+      state,
+      chamberAddress,
+      payoutUpiOrAccount,
+      bio,
+      documentsSummary: {
+        barCertificate: documents?.barCertificate ? {
+          name: documents.barCertificate.name || "bar_certificate.pdf",
+          size: documents.barCertificate.size || 0,
+          type: documents.barCertificate.type || "application/pdf"
+        } : null,
+        aadhaarCard: documents?.aadhaarCard ? {
+          name: documents.aadhaarCard.name || "aadhaar_card.pdf",
+          size: documents.aadhaarCard.size || 0,
+          type: documents.aadhaarCard.type || "application/pdf"
+        } : null,
+        addressProof: documents?.addressProof ? {
+          name: documents.addressProof.name || "address_proof.pdf",
+          size: documents.addressProof.size || 0,
+          type: documents.addressProof.type || "application/pdf"
+        } : null,
+        idCardOrCop: documents?.idCardOrCop ? {
+          name: documents.idCardOrCop.name || "id_card_cop.pdf",
+          size: documents.idCardOrCop.size || 0,
+          type: documents.idCardOrCop.type || "application/pdf"
+        } : null,
+        profilePhoto: documents?.profilePhoto ? {
+          name: documents.profilePhoto.name || "profile_photo.jpg",
+          size: documents.profilePhoto.size || 0,
+          type: documents.profilePhoto.type || "image/jpeg"
+        } : null,
+      }
+    };
+
+    partnerApplications.unshift(record);
+    if (partnerApplications.length > 100) partnerApplications.pop();
+
+    // Log to Telephony / CRM stream
+    logTelephonyEvent({
+      type: "enquiry",
+      clientName: fullName,
+      clientPhone: phone,
+      advocateName: "Partner Registration Portal",
+      status: "success",
+      provider: "partner_onboarding",
+      details: `New Advocate Partner Registration: ${fullName} (${barRegistrationNo}, ${experienceYears} yrs exp). Attached: Certificate: ${Boolean(documents?.barCertificate)}, Aadhaar: ${Boolean(documents?.aadhaarCard)}, Address Proof: ${Boolean(documents?.addressProof)}`
+    });
+
+    // Optionally forward payload to N8N webhook if configured
+    const DEFAULT_N8N_URL = "https://sneha12345678.app.n8n.cloud/webhook/132d0d77-462f-4145-9ad3-834d69e75eaf/chat";
+    const targetWebhook = process.env.N8N_WEBHOOK_URL || DEFAULT_N8N_URL;
+
+    if (targetWebhook) {
+      try {
+        fetch(targetWebhook, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "AdvocatWalla-Partner-Onboarding/1.0",
+          },
+          body: JSON.stringify({
+            event: "advocate_partner_application_received",
+            applicationId,
+            timestamp,
+            advocate: {
+              fullName,
+              phone,
+              email,
+              barRegistrationNo,
+              stateBarCouncil,
+              experienceYears,
+              qualification,
+              specializations,
+              primaryCourts,
+              proposedRate: perMinuteRateProposed,
+              consultationModes,
+              city,
+              state,
+              chamberAddress,
+              payoutUpi: payoutUpiOrAccount,
+            },
+            attachedDocuments: record.documentsSummary
+          }),
+        }).catch((err) => console.warn("N8N Partner webhook trigger failed (non-blocking):", err.message));
+      } catch (err: any) {
+        console.warn("N8N Partner dispatch err:", err.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Advocate Partner Application submitted successfully! Our Bar verification desk will review your documents within 24-48 hours.",
+      applicationId,
+      record: {
+        applicationId,
+        fullName,
+        barRegistrationNo,
+        phone,
+        submittedAt: timestamp,
+        status: "under_review",
+        documentsCount: Object.values(record.documentsSummary).filter(Boolean).length
+      }
+    });
+  } catch (error: any) {
+    console.error("Partner Onboarding Error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to submit partner application."
+    });
+  }
+});
+
+// 7. Get Partner Applications / Check Status API
+app.get("/api/advocates/partner-applications", (req, res) => {
+  const query = (req.query.q as string || "").toLowerCase().trim();
+  if (query) {
+    const filtered = partnerApplications.filter(
+      (app) =>
+        app.applicationId.toLowerCase().includes(query) ||
+        app.phone.includes(query) ||
+        app.barRegistrationNo.toLowerCase().includes(query) ||
+        app.fullName.toLowerCase().includes(query)
+    );
+    return res.json({ total: filtered.length, applications: filtered });
+  }
+
+  res.json({
+    total: partnerApplications.length,
+    applications: partnerApplications.map((app) => ({
+      applicationId: app.applicationId,
+      fullName: app.fullName,
+      phone: app.phone,
+      barRegistrationNo: app.barRegistrationNo,
+      experienceYears: app.experienceYears,
+      stateBarCouncil: app.stateBarCouncil,
+      qualification: app.qualification,
+      specializations: app.specializations,
+      status: app.status,
+      submittedAt: app.submittedAt,
+      documentsSummary: app.documentsSummary
+    }))
+  });
+});
+
+// 8. Vite / Static Server integration
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

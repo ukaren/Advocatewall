@@ -112,6 +112,24 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPolicy }) => {
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate('constitution')}
+                  className="text-amber-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>Constitution of India (All Rules)</span>
+                  <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-400/30">Samvidhan</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('partner-join')}
+                  className="text-amber-400 hover:text-amber-300 font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>Join as Advocate Partner</span>
+                  <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-400/40">Empanelment</span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => setIsN8NModalOpen(true)}
                   className="hover:text-amber-400 text-amber-300/90 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
                 >

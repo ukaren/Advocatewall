@@ -3,6 +3,8 @@ import { CartProvider, useCart } from './context/CartContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { AdvocatesSection } from './components/AdvocatesSection';
+import { JoinAdvocatePartnerSection } from './components/JoinAdvocatePartnerSection';
+import { ConstitutionSection } from './components/ConstitutionSection';
 import { ServiceGrid } from './components/ServiceGrid';
 import { WhyChooseUs } from './components/WhyChooseUs';
 import { HowItWorks } from './components/HowItWorks';
@@ -58,7 +60,7 @@ const MainContent: React.FC = () => {
   // Scroll spy to update active section in navbar
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['home', 'advocates', 'services', 'why-us', 'how-it-works', 'about', 'faq', 'contact'];
+      const sections = ['home', 'advocates', 'services', 'partner-join', 'constitution', 'why-us', 'how-it-works', 'about', 'faq', 'contact'];
       const scrollPosition = window.scrollY + 200;
 
       for (const section of sections) {
@@ -104,6 +106,12 @@ const MainContent: React.FC = () => {
             setSelectedServiceForModal(service)
           }
         />
+
+        {/* Advocate Business Partner Enrollment & Document Attachment Portal */}
+        <JoinAdvocatePartnerSection />
+
+        {/* Indian Constitution Rules & Legal Articles Reference Explorer */}
+        <ConstitutionSection />
 
         {/* Why Choose Us */}
         <WhyChooseUs />

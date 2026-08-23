@@ -227,6 +227,36 @@ export const AdvocatesSection: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Advocate Partner Joining Callout Column / Card */}
+        <div className="max-w-4xl mx-auto mt-8">
+          <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-amber-500/20 via-slate-800 to-slate-800 border border-amber-400/30 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-xl">
+            <div className="flex items-start gap-4 text-center sm:text-left">
+              <div className="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center flex-shrink-0 shadow-md">
+                <FileCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  Advocate Empanelment Open
+                </div>
+                <h4 className="text-lg sm:text-xl font-bold text-white font-display">
+                  Are You a Practicing Advocate? Join as a Business Partner
+                </h4>
+                <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                  Earn on your own per-minute calling rates and receive client legal briefs. Self-register with your <strong>Bar Enrollment Certificate</strong>, <strong>Aadhaar Card</strong>, and <strong>Address Proof</strong>.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="#partner-join"
+              className="w-full sm:w-auto flex-shrink-0 inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer"
+            >
+              <span>Join as Partner</span>
+              <FileCheck className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   );

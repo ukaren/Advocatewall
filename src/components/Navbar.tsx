@@ -27,6 +27,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate }) => 
     { id: 'home', label: 'Home' },
     { id: 'advocates', label: 'Advocates & Calling', badge: '₹10/m' },
     { id: 'services', label: 'Services' },
+    { id: 'constitution', label: 'Constitution Rules', badge: 'Articles' },
+    { id: 'partner-join', label: 'Join as Partner', badge: 'New' },
     { id: 'why-us', label: 'Why Us' },
     { id: 'how-it-works', label: 'How It Works' },
     { id: 'about', label: 'About' },

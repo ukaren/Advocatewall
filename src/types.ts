@@ -111,6 +111,46 @@ export interface TestimonialItem {
   date: string;
 }
 
+export interface AttachedDocument {
+  name: string;
+  size: number;
+  type: string;
+  base64?: string;
+  previewUrl?: string;
+  uploadedAt?: string;
+}
+
+export interface AdvocatePartnerApplication {
+  id?: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  barRegistrationNo: string;
+  stateBarCouncil: string;
+  experienceYears: number;
+  qualification: string;
+  primaryCourts: string[];
+  specializations: string[];
+  perMinuteRateProposed: number;
+  consultationModes: string[];
+  city: string;
+  state: string;
+  chamberAddress: string;
+  payoutUpiOrAccount: string;
+  bio: string;
+  documents: {
+    barCertificate?: AttachedDocument | null;
+    aadhaarCard?: AttachedDocument | null;
+    addressProof?: AttachedDocument | null;
+    idCardOrCop?: AttachedDocument | null;
+    profilePhoto?: AttachedDocument | null;
+  };
+  declarationAccepted: boolean;
+  applicationId?: string;
+  submittedAt?: string;
+  status?: 'submitted' | 'under_review' | 'verified' | 'active';
+}
+
 export interface EnquiryFormData {
   fullName: string;
   phone: string;

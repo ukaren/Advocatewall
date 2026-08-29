@@ -507,42 +507,221 @@ export const LANDMARK_JUDGMENTS: LandmarkJudgment[] = [
 export const FIVE_PREROGATIVE_WRITS = [
   {
     name: "1. Habeas Corpus (To have the body)",
+    hindiName: "बन्दी प्रत्यक्षीकरण (Habeas Corpus)",
     latin: "Habeas Corpus ad subjiciendum",
     meaning: "Command issued to an authority or private person holding someone in custody to produce the detained person before the court to inspect the legality of detention.",
     whenToUse: "Illegal police detention, custodial torture, detention beyond 24 hours without magistrate order, unlawful preventive detention.",
     target: "Can be issued against BOTH Public Authorities and Private Individuals.",
-    articleReference: "Article 32 (SC) & Article 226 (HC)"
+    articleReference: "Article 32 (SC) & Article 226 (HC)",
+    landmarkPrecedent: "Sunil Batra v. Delhi Administration (1980) & ADM Jabalpur (Overruled by Puttaswamy)"
   },
   {
     name: "2. Mandamus (We Command)",
+    hindiName: "परमादेश (Mandamus)",
     latin: "Mandamus",
     meaning: "Command issued by a superior court to a public official, statutory body, university, or government department directing them to perform a mandatory public/statutory duty which they failed to execute.",
     whenToUse: "Refusal by authorities to issue passports/licenses despite eligibility, non-consideration of representations, statutory inaction.",
     target: "Issued only against Public Authorities and Statutory Bodies (NOT private contracts or President/Governor).",
-    articleReference: "Article 32 (SC) & Article 226 (HC)"
+    articleReference: "Article 32 (SC) & Article 226 (HC)",
+    landmarkPrecedent: "Gujarat State Financial Corporation v. Lotus Hotels (1983)"
   },
   {
     name: "3. Quo Warranto (By what warrant/authority?)",
+    hindiName: "अधिकार पृच्छा (Quo Warranto)",
     latin: "Quo Warranto",
     meaning: "Inquiry into the legal authority of a person holding a substantive public office to prevent illegal usurpation of public posts.",
     whenToUse: "Appointment of an unqualified person to a public office (e.g. Vice-Chancellor, Advocate General, Public Prosecutor) in violation of statutory recruitment rules.",
     target: "Issued against persons holding a public office created by statute or Constitution.",
-    articleReference: "Article 32 (SC) & Article 226 (HC)"
+    articleReference: "Article 32 (SC) & Article 226 (HC)",
+    landmarkPrecedent: "University of Mysore v. C.D. Govinda Rao (1965)"
   },
   {
     name: "4. Prohibition (Stay on jurisdictional excess)",
+    hindiName: "प्रतिषेध (Prohibition)",
     latin: "Prohibition",
     meaning: "Judicial order issued by a higher court to a lower court or quasi-judicial tribunal preventing it from continuing proceedings outside or exceeding its legal jurisdiction.",
     whenToUse: "When a lower court or tribunal attempts to try a case where it lacks territorial, pecuniary, or subject-matter jurisdiction.",
     target: "Issued against Judicial and Quasi-Judicial Authorities during ongoing proceedings (Preventive in nature).",
-    articleReference: "Article 32 (SC) & Article 226 (HC)"
+    articleReference: "Article 32 (SC) & Article 226 (HC)",
+    landmarkPrecedent: "East India Commercial Co. v. Collector of Customs (1962)"
   },
   {
     name: "5. Certiorari (To be certified / Quashing order)",
+    hindiName: "उत्प्रेषण (Certiorari)",
     latin: "Certiorari",
     meaning: "Command issued to a subordinate court or tribunal to transfer the records of a case to the superior court and quash an illegal order passed without jurisdiction or in violation of natural justice.",
     whenToUse: "To quash ex-parte illegal orders passed without hearing, orders suffering from manifest error of law apparent on the face of the record.",
     target: "Issued against Judicial, Quasi-Judicial, and Administrative bodies affecting citizen rights (Curative & Corrective).",
-    articleReference: "Article 32 (SC) & Article 226 (HC)"
+    articleReference: "Article 32 (SC) & Article 226 (HC)",
+    landmarkPrecedent: "Syed Yakoob v. K.S. Radhakrishnan (1964)"
   }
+];
+
+export interface CitizenRightScenario {
+  id: string;
+  scenarioTitle: string;
+  category: 'Police & Custody' | 'Property & Demolition' | 'Digital & Privacy' | 'Employment & Equality' | 'Consumer & Free Speech';
+  situationDescription: string;
+  applicableArticles: string[];
+  constitutionalRight: string;
+  appropriateRemedy: string;
+  writType: string;
+  supremeCourtPrecedent: string;
+  advocateActionPlan: string;
+}
+
+export const CITIZEN_RIGHTS_SCENARIOS: CitizenRightScenario[] = [
+  {
+    id: 'police-custody-detention',
+    scenarioTitle: 'Unlawful Police Detention Beyond 24 Hours without Magistrate Production',
+    category: 'Police & Custody',
+    situationDescription: 'A family member or friend is taken into custody by local police and kept in the station for over 24 hours without being formally produced before a Judicial Magistrate or given a copy of the FIR / arrest memo.',
+    applicableArticles: ['Article 21', 'Article 22(1)', 'Article 22(2)'],
+    constitutionalRight: 'Right to Personal Liberty and Mandatory Production before Magistrate within 24 Hours',
+    appropriateRemedy: 'Immediate Writ of Habeas Corpus before the High Court (Art 226) or Supreme Court (Art 32)',
+    writType: 'Writ of Habeas Corpus',
+    supremeCourtPrecedent: 'D.K. Basu v. State of West Bengal (1997) & Arnesh Kumar v. State of Bihar (2014)',
+    advocateActionPlan: 'Advocate immediately prepares an emergency Habeas Corpus petition demanding production of the detenu, inspects GD (General Diary) entry, and seeks departmental compensation for illegal confinement.'
+  },
+  {
+    id: 'property-demolition-bulldozer',
+    scenarioTitle: 'Bulldozer / Arbitrary Demolition of Residential/Commercial Property without Notice',
+    category: 'Property & Demolition',
+    situationDescription: 'Municipal or police authorities arrive with bulldozers to demolish a residential house or commercial establishment without serving a prior 15-day show-cause notice, opportunity of hearing, or statutory demolition order.',
+    applicableArticles: ['Article 21', 'Article 14', 'Article 300A'],
+    constitutionalRight: 'Right to Shelter as part of Life (Art 21) & Constitutional Right to Property (Art 300A) against Arbitrariness (Art 14)',
+    appropriateRemedy: 'Urgent Article 226 Writ Petition before High Court seeking Interim Injunction / Stay on Demolition',
+    writType: 'Writ of Mandamus / Certiorari with Stay Application',
+    supremeCourtPrecedent: 'Supreme Court Demolition Guidelines (In Re: Demolition of Properties, Nov 2024) & Olga Tellis (1985)',
+    advocateActionPlan: 'Advocate files urgent mention before the High Court Vacation/Regular Bench for stay of demolition, citing mandatory 15-day notice, videography requirement, and Supreme Court nationwide demolition guidelines.'
+  },
+  {
+    id: 'phone-tapping-digital-privacy',
+    scenarioTitle: 'Unauthorized Phone Tapping, Digital Surveillance & Phone Seizure during Search',
+    category: 'Digital & Privacy',
+    situationDescription: 'Investigating agency or police seize personal mobile phones and laptops without a judicial search warrant or clone digital devices without maintaining cryptographic hash value logs.',
+    applicableArticles: ['Article 21', 'Article 20(3)', 'Article 19(1)(a)'],
+    constitutionalRight: 'Fundamental Right to Privacy (Puttaswamy) & Protection Against Compelled Self-Incrimination (Art 20(3))',
+    appropriateRemedy: 'Writ Petition under Article 226 / Section 482 CrPC (Sec 528 BNSS) for safe custody and return of cloned data',
+    writType: 'Writ of Mandamus',
+    supremeCourtPrecedent: 'Justice K.S. Puttaswamy (2017) & Supreme Court Digital Device Seizure Directions (2023)',
+    advocateActionPlan: 'Advocate demands provision of Hash value at time of seizure, challenges wholesale cloning of personal data, and invokes privacy safeguards against coercive password disclosure.'
+  },
+  {
+    id: 'wrongful-government-job-denial',
+    scenarioTitle: 'Arbitrary Disqualification in Public Recruitment / Roster Manipulation',
+    category: 'Employment & Equality',
+    situationDescription: 'A qualified candidate passes a government recruitment examination, but authorities change eligibility criteria midway, alter answer keys unfairly, or fail to adhere to statutory reservation rosters.',
+    applicableArticles: ['Article 14', 'Article 16(1)', 'Article 16(4)'],
+    constitutionalRight: 'Right to Equality of Opportunity in Public Employment & Non-Arbitrariness',
+    appropriateRemedy: 'Writ Petition under Article 226 before High Court or Central Administrative Tribunal (CAT) under Art 323A',
+    writType: 'Writ of Mandamus / Certiorari',
+    supremeCourtPrecedent: 'K. Manjusree v. State of A.P. (Rules of the game cannot be changed mid-way) & E.P. Royappa (1974)',
+    advocateActionPlan: 'Advocate challenges the retrospective alteration of selection norms, quashes flawed merit lists, and secures provisional appointment directions.'
+  },
+  {
+    id: 'speech-social-media-fir',
+    scenarioTitle: 'Frivolous FIR / Criminal Defamation for Social Media Criticism / Free Speech',
+    category: 'Consumer & Free Speech',
+    situationDescription: 'Police register an FIR against a citizen or journalist for posting fair criticism of government policies or public officials on social media platforms.',
+    applicableArticles: ['Article 19(1)(a)', 'Article 21', 'Article 14'],
+    constitutionalRight: 'Fundamental Freedom of Speech and Expression & Protection against Vexatious Prosecution',
+    appropriateRemedy: 'Writ Petition under Article 226 / Section 482 CrPC (Section 528 BNSS) before High Court for Quashing of FIR',
+    writType: 'Writ of Certiorari / Section 482 Quashing',
+    supremeCourtPrecedent: 'Shreya Singhal v. Union of India (2015) & Patricia Mukhim v. State of Meghalaya (2021)',
+    advocateActionPlan: 'Advocate invokes landmark Shreya Singhal precedents to demonstrate absence of incitement to violence, staying coercive police action and quashing vexatious charges.'
+  }
+];
+
+export interface ConstitutionalAmendment {
+  number: string;
+  year: number;
+  title: string;
+  keyHighlights: string;
+  impactOnCitizens: string;
+  governingArticles: string[];
+}
+
+export const KEY_CONSTITUTIONAL_AMENDMENTS: ConstitutionalAmendment[] = [
+  {
+    number: "106th Amendment Act",
+    year: 2023,
+    title: "Nari Shakti Vandan Adhiniyam (Women's Reservation Act)",
+    keyHighlights: "Provides 33% (one-third) reservation for women in the Lok Sabha, State Legislative Assemblies, and National Capital Territory of Delhi Assembly.",
+    impactOnCitizens: "Historic constitutional reform empowering women in legislative governance and electoral policy-making for a period of 15 years.",
+    governingArticles: ["Article 330A", "Article 332A", "Article 239AA"]
+  },
+  {
+    number: "103rd Amendment Act",
+    year: 2019,
+    title: "10% Economically Weaker Sections (EWS) Reservation",
+    keyHighlights: "Enables the State to make special provisions and up to 10% reservation in educational institutions and public employment for citizens belonging to Economically Weaker Sections.",
+    impactOnCitizens: "Upheld by Supreme Court in Janhit Abhiyan (2022) as not violating the basic structure of the Constitution.",
+    governingArticles: ["Article 15(6)", "Article 16(6)"]
+  },
+  {
+    number: "101st Amendment Act",
+    year: 2016,
+    title: "Goods and Services Tax (GST) & Fiscal Federalism",
+    keyHighlights: "Introduced the unified Goods and Services Tax regime across India, creating the constitutional GST Council (Art 279A).",
+    impactOnCitizens: "Harmonized indirect taxation across States and Union, establishing collaborative fiscal federalism.",
+    governingArticles: ["Article 246A", "Article 269A", "Article 279A"]
+  },
+  {
+    number: "99th Amendment Act",
+    year: 2014,
+    title: "National Judicial Appointments Commission (NJAC) - Struck Down",
+    keyHighlights: "Sought to replace the Supreme Court Collegium system with the NJAC for appointment of higher judiciary judges.",
+    impactOnCitizens: "Struck down in entirety by the Supreme Court Constitution Bench (2015) as unconstitutional for violating Judicial Independence as part of the Basic Structure.",
+    governingArticles: ["Article 124A", "Article 124B", "Article 124C"]
+  },
+  {
+    number: "86th Amendment Act",
+    year: 2002,
+    title: "Right to Free & Compulsory Elementary Education",
+    keyHighlights: "Inserted Article 21A making free and compulsory elementary education for children aged 6–14 a Fundamental Right, and added Article 51A(k) Fundamental Duty.",
+    impactOnCitizens: "Paved the path for the Right to Education (RTE) Act, 2009, mandating 25% quota for underprivileged children in private schools.",
+    governingArticles: ["Article 21A", "Article 45", "Article 51A(k)"]
+  },
+  {
+    number: "73rd & 74th Amendment Acts",
+    year: 1992,
+    title: "Constitutional Status to Panchayati Raj & Municipalities",
+    keyHighlights: "Granted constitutional status to rural Panchayats (Part IX, 11th Schedule) and urban Municipalities (Part IX-A, 12th Schedule) with 33% mandatory reservation for women.",
+    impactOnCitizens: "Decentralized grassroots democracy across 3-tier local self-governments throughout India.",
+    governingArticles: ["Article 243 – 243ZG", "11th & 12th Schedules"]
+  },
+  {
+    number: "44th Amendment Act",
+    year: 1978,
+    title: "Post-Emergency Constitutional Safeguards & Property Right Shift",
+    keyHighlights: "Replaced 'internal disturbance' with 'armed rebellion' for Art 352 emergency, made Articles 20 & 21 non-suspendable during emergency, and transformed Right to Property from Fundamental Right (Art 31) to Constitutional Right (Art 300A).",
+    impactOnCitizens: "Protected citizens forever against custodial despotism and arbitrary suspension of fundamental personal liberty.",
+    governingArticles: ["Article 20", "Article 21", "Article 300A", "Article 352"]
+  },
+  {
+    number: "42nd Amendment Act",
+    year: 1976,
+    title: "The 'Mini-Constitution' of India",
+    keyHighlights: "Added terms 'SOCIALIST', 'SECULAR', and 'INTEGRITY' to the Preamble; inserted Part IV-A Fundamental Duties (Art 51A); and added Article 39A Free Legal Aid.",
+    impactOnCitizens: "Major structural expansion of welfare state commitments and civic responsibilities.",
+    governingArticles: ["Preamble", "Article 39A", "Article 43A", "Article 48A", "Article 51A"]
+  },
+  {
+    number: "1st Amendment Act",
+    year: 1951,
+    title: "First Constitutional Amendment & Ninth Schedule",
+    keyHighlights: "Introduced Article 31A, 31B, and the Ninth Schedule to insulate agricultural land reform and zamindari abolition laws from fundamental rights challenge.",
+    impactOnCitizens: "Established the foundations of economic restructuring and reasonable restrictions on speech under Art 19(2).",
+    governingArticles: ["Article 15(3)", "Article 19(2)", "Article 31A", "Article 31B", "Ninth Schedule"]
+  }
+];
+
+export const CONSTITUTIONAL_AI_PRESET_QUESTIONS = [
+  "What are my constitutional remedies under Article 226 if my house is threatened with illegal demolition?",
+  "Can the police arrest me without giving written grounds of arrest under Article 22 & D.K. Basu guidelines?",
+  "What is the difference between filing a Writ Petition in Supreme Court (Article 32) vs High Court (Article 226)?",
+  "How does the Basic Structure Doctrine restrict Parliament from amending the Constitution under Article 368?",
+  "What are the 11 Fundamental Duties under Article 51A and how are they interpreted in courts?",
+  "Explain the Golden Triangle of Articles 14, 19, and 21 and the test of substantive Due Process."
 ];

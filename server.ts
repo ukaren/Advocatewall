@@ -506,7 +506,86 @@ app.get("/api/advocates/partner-applications", (req, res) => {
   });
 });
 
-// 8. Vite / Static Server integration
+// 8. Gemini AI Legal Research & Notice Drafting Assistant API
+let geminiClient: any = null;
+function getGeminiClient() {
+  if (!geminiClient && process.env.GEMINI_API_KEY) {
+    try {
+      const { GoogleGenAI } = require("@google/genai");
+      geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    } catch (e: any) {
+      console.warn("Failed to initialize GoogleGenAI:", e.message);
+    }
+  }
+  return geminiClient;
+}
+
+app.post("/api/ai/legal-assist", async (req, res) => {
+  try {
+    const {
+      prompt,
+      taskType = "legal_research", // "draft_notice" | "bns_query" | "case_summary" | "clause_review"
+      contextData = {}
+    } = req.body;
+
+    if (!prompt || typeof prompt !== "string") {
+      return res.status(400).json({ error: "A valid prompt string is required." });
+    }
+
+    const ai = getGeminiClient();
+
+    if (ai) {
+      const systemInstruction = `You are a Senior Practicing Advocate of the High Court of Delhi and Supreme Court of India, advising on Indian Law including Bharatiya Nyaya Sanhita (BNS 2023), BNSS 2023, BSA 2023, Negotiable Instruments Act, Transfer of Property Act, Consumer Protection Act 2019, and the Constitution of India.
+Provide clear, authoritative, actionable, and professionally formatted legal guidance.
+Structure your answers with:
+1. Legal Provisions & Applicable Sections (BNS/BNSS/BSA or specific Special Acts)
+2. Strategic Legal Advice & Immediate Procedural Steps
+3. Draft Clauses or Statutory Notice Demand (if applicable)
+4. Cautionary & Limitation Timelines (Statutory notice periods, limitation act periods)
+Keep the tone professional, objective, and legally precise.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.7-flash",
+        contents: [
+          { role: "user", parts: [{ text: `${systemInstruction}\n\nTask: ${taskType}\nUser Query / Case Facts:\n${prompt}\n\nAdditional Context: ${JSON.stringify(contextData)}` }] }
+        ],
+      });
+
+      const responseText = response.text || "No response generated.";
+      return res.json({
+        success: true,
+        source: "gemini_ai",
+        model: "gemini-3.7-flash",
+        answer: responseText,
+      });
+    }
+
+    // Fallback if GEMINI_API_KEY is not configured yet in environment
+    let fallbackText = "";
+    if (taskType === "draft_notice") {
+      fallbackText = `### Statutory Notice Framework under Indian Law\n\n**Applicable Statutes:**\n- Section 138 / 142 Negotiable Instruments Act, 1881 OR Section 106 Transfer of Property Act, 1882.\n- Section 318(4) Bharatiya Nyaya Sanhita, 2023 (Cheating & Dishonest Inducement).\n\n**Key Strategic Directives:**\n1. **Statutory Demand Window:** Ensure notice gives exactly the mandated statutory period (15 days for Section 138 NI Act / 60 days for Section 80 CPC).\n2. **Proof of Service:** Always dispatch via Registered Post A.D. & Speed Post with postal tracking consignment receipts preserved alongside email delivery.\n3. **Cause of Action:** Clearly delineate dates of invoice, dishonour memo, and exact quantified liability.\n\n*Note: Connect with Advocate Seema Jha for official Bar-certified notice dispatch and court representation.*`;
+    } else if (taskType === "bns_query") {
+      fallbackText = `### New Criminal Laws 2024 Reference (BNS, BNSS, BSA)\n\n- **IPC to BNS Transition:** Section 302 IPC is now Section 103(1) BNS; Section 420 IPC is now Section 318(4) BNS; Section 376 IPC is now Section 64 BNS.\n- **Mandatory Audio-Video:** Under Section 105 BNSS, seizure and search proceedings mandate video recording.\n- **Zero FIR Mandate:** Section 173(1) BNSS makes registration of Zero FIR mandatory across any police station.\n- **Electronic Evidence:** Section 63 BSA Schedule replaces the former Section 65B IEA certificate.`;
+    } else {
+      fallbackText = `### Professional Legal Assessment\n\n**Immediate Procedural Steps:**\n1. Consolidate all transactional records, receipts, WhatsApp correspondences, and bank statements.\n2. Ascertain limitation period under Limitation Act, 1963 (typically 3 years for debt recovery, 30 days for Section 138 notice).\n3. Issue formal Advocate Statutory Notice before initiating litigation before District Court or High Court.\n\n*For full case briefing and immediate consultation, book a ₹10/min direct call with Advocate Seema Jha.*`;
+    }
+
+    res.json({
+      success: true,
+      source: "knowledge_base",
+      answer: fallbackText,
+      note: "For live dynamic AI legal research, configure GEMINI_API_KEY in the platform environment."
+    });
+  } catch (error: any) {
+    console.error("AI Legal Assistant error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to process AI legal query."
+    });
+  }
+});
+
+// 9. Vite / Static Server integration
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

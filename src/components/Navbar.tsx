@@ -8,9 +8,10 @@ import { ADVOCATES_LIST } from '../data/advocates';
 interface NavbarProps {
   activeSection: string;
   onNavigate: (sectionId: string) => void;
+  onOpenStampModal?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpenStampModal }) => {
   const { totalItems, setIsCartOpen, startCallWithAdvocate, setIsN8NModalOpen, setIsN8NChatOpen } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -26,12 +27,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate }) => 
   const navLinks = [
     { id: 'home', label: 'Home' },
     { id: 'advocates', label: 'Advocates & Calling', badge: '₹10/m' },
+    { id: 'new-criminal-laws', label: 'BNS 2024 Laws', badge: 'New IPC' },
+    { id: 'notice-generator', label: 'Legal Notice Drafter', badge: 'Drafts' },
     { id: 'services', label: 'Services' },
     { id: 'constitution', label: 'Constitution Rules', badge: 'Articles' },
-    { id: 'partner-join', label: 'Join as Partner', badge: 'New' },
+    { id: 'partner-join', label: 'Join as Partner', badge: 'Apply' },
     { id: 'why-us', label: 'Why Us' },
-    { id: 'how-it-works', label: 'How It Works' },
-    { id: 'about', label: 'About' },
     { id: 'faq', label: 'FAQ' },
     { id: 'contact', label: 'Contact' },
   ];

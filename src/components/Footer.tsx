@@ -112,6 +112,24 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPolicy }) => {
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate('new-criminal-laws')}
+                  className="text-amber-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>New Criminal Laws 2024 (BNS/BNSS)</span>
+                  <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-400/30">BNS</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('notice-generator')}
+                  className="text-amber-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>Legal Notice Drafter (Sec 138 / Eviction)</span>
+                  <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-400/30">Drafts</span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate('constitution')}
                   className="text-amber-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
                 >

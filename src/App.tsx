@@ -3,6 +3,8 @@ import { CartProvider, useCart } from './context/CartContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { AdvocatesSection } from './components/AdvocatesSection';
+import { NewCriminalLawsSection } from './components/NewCriminalLawsSection';
+import { LegalNoticeGeneratorSection } from './components/LegalNoticeGeneratorSection';
 import { JoinAdvocatePartnerSection } from './components/JoinAdvocatePartnerSection';
 import { ConstitutionSection } from './components/ConstitutionSection';
 import { ServiceGrid } from './components/ServiceGrid';
@@ -16,6 +18,7 @@ import { Footer } from './components/Footer';
 import { CartDrawer } from './components/CartDrawer';
 import { ServiceDetailModal } from './components/ServiceDetailModal';
 import { CallConsultationModal } from './components/CallConsultationModal';
+import { StampDutyFeeCalculatorModal } from './components/StampDutyFeeCalculatorModal';
 import { CheckoutModal } from './components/CheckoutModal';
 import { LegalPolicyModal } from './components/LegalPolicyModal';
 import { N8NTelephonyModal } from './components/N8NTelephonyModal';
@@ -23,9 +26,11 @@ import { N8NChatWidget } from './components/N8NChatWidget';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { ToastContainer } from './components/Toast';
 import { ServiceItem } from './types';
+import { ADVOCATES_LIST } from './data/advocates';
 
 const MainContent: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
+  const [isStampModalOpen, setIsStampModalOpen] = useState(false);
   const {
     selectedServiceForModal,
     setSelectedServiceForModal,
@@ -39,6 +44,8 @@ const MainContent: React.FC = () => {
     setActivePolicyModal,
     isN8NModalOpen,
     setIsN8NModalOpen,
+    addToast,
+    startCallWithAdvocate
   } = useCart();
 
   // Smooth scroll handler
@@ -60,7 +67,20 @@ const MainContent: React.FC = () => {
   // Scroll spy to update active section in navbar
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['home', 'advocates', 'services', 'partner-join', 'constitution', 'why-us', 'how-it-works', 'about', 'faq', 'contact'];
+      const sections = [
+        'home', 
+        'advocates', 
+        'new-criminal-laws', 
+        'notice-generator', 
+        'services', 
+        'partner-join', 
+        'constitution', 
+        'why-us', 
+        'how-it-works', 
+        'about', 
+        'faq', 
+        'contact'
+      ];
       const scrollPosition = window.scrollY + 200;
 
       for (const section of sections) {
@@ -86,6 +106,7 @@ const MainContent: React.FC = () => {
       <Navbar
         activeSection={activeSection}
         onNavigate={scrollToSection}
+        onOpenStampModal={() => setIsStampModalOpen(true)}
       />
 
       {/* Main Sections */}
@@ -95,10 +116,23 @@ const MainContent: React.FC = () => {
           onExploreServices={() => scrollToSection('services')}
           onExploreAdvocates={() => scrollToSection('advocates')}
           onWhyUsClick={() => scrollToSection('why-us')}
+          onExploreBns={() => scrollToSection('new-criminal-laws')}
+          onExploreNotices={() => scrollToSection('notice-generator')}
         />
 
         {/* Specialized Advocates Panel & On-Call Legal Counsel */}
         <AdvocatesSection />
+
+        {/* 1. New Criminal Laws 2024-2026: BNS, BNSS & BSA Section Converter & Comparative Law Analyzer */}
+        <NewCriminalLawsSection 
+          onOpenCallModal={() => startCallWithAdvocate(ADVOCATES_LIST[0], 15)}
+        />
+
+        {/* 2. Instant Court-Ready Statutory Legal Notice & Draft Generator */}
+        <LegalNoticeGeneratorSection
+          onOpenCallModal={() => startCallWithAdvocate(ADVOCATES_LIST[0], 15)}
+          onShowToast={(msg) => addToast(msg, 'success')}
+        />
 
         {/* Services Marketplace Grid */}
         <ServiceGrid
@@ -156,6 +190,12 @@ const MainContent: React.FC = () => {
           setIsCallModalOpen(false);
           setSelectedAdvocateForCall(null);
         }}
+      />
+
+      <StampDutyFeeCalculatorModal
+        isOpen={isStampModalOpen}
+        onClose={() => setIsStampModalOpen(false)}
+        onOpenCallModal={() => startCallWithAdvocate(ADVOCATES_LIST[0], 15)}
       />
 
       <CheckoutModal

@@ -9,9 +9,17 @@ interface HeroProps {
   onExploreServices: () => void;
   onExploreAdvocates: () => void;
   onWhyUsClick: () => void;
+  onExploreBns?: () => void;
+  onExploreNotices?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onExploreServices, onExploreAdvocates, onWhyUsClick }) => {
+export const Hero: React.FC<HeroProps> = ({ 
+  onExploreServices, 
+  onExploreAdvocates, 
+  onWhyUsClick,
+  onExploreBns,
+  onExploreNotices
+}) => {
   const { startCallWithAdvocate } = useCart();
   const leadAdvocate = ADVOCATES_LIST[0];
 
@@ -25,9 +33,29 @@ export const Hero: React.FC<HeroProps> = ({ onExploreServices, onExploreAdvocate
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           {/* Trust pill with Calling Announcement */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-amber-300 text-xs font-semibold tracking-wide uppercase shadow-xs mb-6">
-            <Timer className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>Advocate Consultation On Call • ₹10/Minute</span>
+          <div className="inline-flex flex-wrap items-center justify-center gap-2 mb-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-amber-300 text-xs font-semibold tracking-wide uppercase shadow-xs">
+              <Timer className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              <span>Advocate Consultation On Call • ₹10/Minute</span>
+            </div>
+            {onExploreBns && (
+              <button
+                onClick={onExploreBns}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400/20 text-slate-900 border border-amber-400/40 text-xs font-bold hover:bg-amber-400/30 transition-colors cursor-pointer"
+              >
+                <Scale className="w-3 h-3 text-amber-700" />
+                <span>BNS 2024 Law Mapper</span>
+              </button>
+            )}
+            {onExploreNotices && (
+              <button
+                onClick={onExploreNotices}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                <span>Legal Notice Drafter</span>
+              </button>
+            )}
           </div>
 
           {/* Main Display Headline */}

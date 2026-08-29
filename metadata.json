@@ -1,6 +1,6 @@
 {
-  "name": "ADVOCAT WALLA - N8N Legal AI Chatbot",
-  "description": "An ultra-modern, dedicated N8N AI Legal Assistant and Chatbot for Indian Law, BNS 2024, Legal Notice Drafting, Constitutional Writs, and On-Demand Advocate Consultations.",
+  "name": "ADVOCAT WALLA - Legal Services Marketplace",
+  "description": "A modern, interactive e-commerce and legal services marketplace for professional legal consultations, document drafting, contract reviews, and WhatsApp enquiry checkout.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

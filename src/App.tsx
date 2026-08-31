@@ -23,7 +23,6 @@ import { CheckoutModal } from './components/CheckoutModal';
 import { LegalPolicyModal } from './components/LegalPolicyModal';
 import { N8NTelephonyModal } from './components/N8NTelephonyModal';
 import { N8NChatWidget } from './components/N8NChatWidget';
-import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { ToastContainer } from './components/Toast';
 import { ServiceItem } from './types';
 import { ADVOCATES_LIST } from './data/advocates';
@@ -213,7 +212,7 @@ const MainContent: React.FC = () => {
       />
 
       <N8NChatWidget />
-      <FloatingWhatsApp />
+
       <ToastContainer />
     </div>
   );

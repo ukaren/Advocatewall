@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Scale, ShoppingBag, Menu, X, Phone, MessageSquare, PhoneCall, Timer, Workflow, Bot } from 'lucide-react';
+import { ShoppingBag, Menu, X, Phone, MessageSquare, PhoneCall, Timer } from 'lucide-react';
 import { BUSINESS_CONFIG } from '../data/config';
 import { useCart } from '../context/CartContext';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 import { ADVOCATES_LIST } from '../data/advocates';
+import { AdvocateWallaLogo } from './AdvocateWallaLogo';
 
 interface NavbarProps {
   activeSection: string;
@@ -12,7 +13,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpenStampModal }) => {
-  const { totalItems, setIsCartOpen, startCallWithAdvocate, setIsN8NModalOpen, setIsN8NChatOpen } = useCart();
+  const { totalItems, setIsCartOpen, startCallWithAdvocate } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -53,27 +54,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          {/* Brand Logo */}
-          <button
-            id="brand-logo-btn"
+          {/* Brand Logo (Bilingual Devanagari & English Mix) */}
+          <AdvocateWallaLogo
+            size="sm"
+            variant="light"
+            showSubtitle={true}
+            showDevnagriBadge={true}
             onClick={() => handleLinkClick('home')}
-            className="flex items-center gap-2.5 sm:gap-3 text-left group cursor-pointer focus:outline-none"
-          >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-slate-900 text-amber-400 flex items-center justify-center shadow-xs group-hover:bg-slate-800 transition-colors">
-              <Scale className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-base sm:text-xl tracking-tight text-slate-900 font-display">
-                  {BUSINESS_CONFIG.name}
-                </span>
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              </div>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium tracking-wide">
-                {BUSINESS_CONFIG.tagline}
-              </p>
-            </div>
-          </button>
+          />
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
@@ -103,29 +91,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* AI Legal Assistant n8n Chat Button */}
-            <button
-              id="navbar-ai-chat-btn"
-              onClick={() => setIsN8NChatOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-semibold rounded-lg bg-amber-50 text-slate-900 hover:bg-amber-100 border border-amber-300/80 transition-colors shadow-2xs cursor-pointer"
-              title="Open n8n AI Legal Assistant Chat"
-            >
-              <Bot className="w-3.5 h-3.5 text-amber-600" />
-              <span className="hidden lg:inline font-bold">AI Legal Chat</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            </button>
-
-            {/* N8N Telephony & CRM Workflow Button */}
-            <button
-              id="navbar-n8n-btn"
-              onClick={() => setIsN8NModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-300 transition-colors shadow-2xs cursor-pointer"
-              title="Configure n8n Webhook & Telephony Bridge"
-            >
-              <Workflow className="w-3.5 h-3.5 text-amber-600" />
-              <span className="hidden sm:inline">n8n / Telephony</span>
-            </button>
-
             {/* Quick Instant Call Button */}
             <button
               id="navbar-call-now-btn"
@@ -208,17 +173,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
             </div>
 
             <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsN8NChatOpen(true);
-                }}
-                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-slate-900 text-amber-300 hover:bg-slate-800 transition-colors shadow-xs"
-              >
-                <Bot className="w-4 h-4 text-amber-400" />
-                <span>Open AI Legal Assistant Chat (n8n)</span>
-              </button>
-
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);

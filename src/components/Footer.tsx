@@ -1,8 +1,9 @@
 import React from 'react';
-import { Scale, Phone, Mail, MessageSquare, ArrowUp, ShieldCheck, Heart, Workflow } from 'lucide-react';
+import { Scale, Phone, Mail, MessageSquare, ArrowUp, ShieldCheck, Heart, Workflow, CreditCard } from 'lucide-react';
 import { BUSINESS_CONFIG } from '../data/config';
 import { useCart } from '../context/CartContext';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
+import { AdvocateWallaLogo } from './AdvocateWallaLogo';
 import { LegalDisclaimer } from './LegalDisclaimer';
 
 interface FooterProps {
@@ -23,19 +24,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPolicy }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Col (2 cols on lg) */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center">
-                <Scale className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="font-bold text-xl tracking-tight text-white font-display">
-                  {BUSINESS_CONFIG.name}
-                </span>
-                <p className="text-xs text-amber-400 font-medium">
-                  {BUSINESS_CONFIG.tagline}
-                </p>
-              </div>
-            </div>
+            <AdvocateWallaLogo
+              size="md"
+              variant="dark"
+              showSubtitle={true}
+              showDevnagriBadge={true}
+              onClick={() => onNavigate('home')}
+            />
 
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">
               Professional, confidential, and transparent legal services & consultations, available online across India.
@@ -221,6 +216,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPolicy }) => {
               >
                 <Mail className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                 <span className="truncate">{BUSINESS_CONFIG.email}</span>
+              </a>
+
+              <a
+                href={BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors pt-1"
+              >
+                <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate font-medium">Pay Online (Razorpay)</span>
               </a>
 
               <div className="pt-2 text-[11px] text-slate-400">

@@ -32,8 +32,6 @@ interface CartContextType {
   setActivePolicyModal: (policy: string | null) => void;
   isN8NModalOpen: boolean;
   setIsN8NModalOpen: (open: boolean) => void;
-  isN8NChatOpen: boolean;
-  setIsN8NChatOpen: (open: boolean) => void;
   toasts: ToastMessage[];
   addToast: (message: string, type?: 'success' | 'info' | 'error') => void;
   removeToast: (id: string) => void;
@@ -61,7 +59,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [callDurationMinutes, setCallDurationMinutes] = useState(15);
   const [activePolicyModal, setActivePolicyModal] = useState<string | null>(null);
   const [isN8NModalOpen, setIsN8NModalOpen] = useState(false);
-  const [isN8NChatOpen, setIsN8NChatOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Persist to localStorage
@@ -161,8 +158,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setActivePolicyModal,
         isN8NModalOpen,
         setIsN8NModalOpen,
-        isN8NChatOpen,
-        setIsN8NChatOpen,
         toasts,
         addToast,
         removeToast,

@@ -75,10 +75,12 @@ export interface CartItem {
 
 export interface BusinessConfig {
   name: string;
+  nameHindi?: string;
   advocateName: string;
   advocateTitle: string;
   barRegistration: string;
   tagline: string;
+  taglineHindi?: string;
   subTagline: string;
   phone: string;
   phoneRaw: string;
@@ -92,6 +94,10 @@ export interface BusinessConfig {
   experienceYears: number;
   satisfiedClients: string;
   n8nChatWebhookUrl?: string;
+  merchantId?: string;
+  razorpayMerchantId?: string;
+  razorpayUrl?: string;
+  razorpayHandle?: string;
 }
 
 export interface FAQItem {

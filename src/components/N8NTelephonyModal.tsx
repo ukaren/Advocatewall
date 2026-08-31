@@ -89,9 +89,9 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
     source: "Advocate Legal Portal",
     callDetails: {
       clientName: "Rahul Sharma",
-      clientPhone: "+91 98765 43210",
+      clientPhone: "+91 98670 15157",
       advocateName: "Advocate Seema Jha",
-      advocatePhone: "+91 98765 43210",
+      advocatePhone: "+91 98670 15157",
       durationMinutes: 15,
       ratePerMinute: 10,
       totalCost: 149,
@@ -99,8 +99,8 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
     },
     telephonyAction: {
       action: "bridge_call",
-      from: "+91 98765 43210",
-      to: "+91 98765 43210",
+      from: "+91 98670 15157",
+      to: "+91 98670 15157",
       recordCall: true
     }
   };
@@ -394,7 +394,7 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
                 <div>Counsel: <strong className="text-white">Advocate Seema Jha</strong></div>
                 <div>Practice: <strong className="text-white">4 Years Experience (B.A. LL.B.)</strong></div>
                 <div>Per Minute Fee: <strong className="text-amber-300">₹10 / Minute</strong></div>
-                <div>Chamber Line: <strong className="text-white">+91 98765 43210</strong></div>
+                <div>Chamber Line: <strong className="text-white">+91 98670 15157</strong></div>
               </div>
             </div>
           </div>

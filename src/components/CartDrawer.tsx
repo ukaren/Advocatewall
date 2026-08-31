@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, MessageSquare, ShieldCheck } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, MessageSquare, ShieldCheck, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { BUSINESS_CONFIG } from '../data/config';
 import { getCartEnquiryWhatsAppUrl } from '../utils/whatsapp';
@@ -232,16 +232,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onExploreServices }) => 
                 <ArrowRight className="w-4 h-4 text-amber-400" />
               </button>
 
-              <a
-                id="cart-instant-whatsapp-btn"
-                href={getCartEnquiryWhatsAppUrl(cart)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-xs"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>Instant WhatsApp Enquiry</span>
-              </a>
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  id="cart-instant-whatsapp-btn"
+                  href={getCartEnquiryWhatsAppUrl(cart)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-xs truncate"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate">WhatsApp Chat</span>
+                </a>
+
+                <a
+                  id="cart-instant-razorpay-btn"
+                  href={BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors shadow-xs truncate"
+                >
+                  <CreditCard className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate">Pay Online (Razorpay)</span>
+                </a>
+              </div>
             </div>
           </div>
         )}

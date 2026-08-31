@@ -4,6 +4,7 @@ import { BUSINESS_CONFIG } from '../data/config';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 import { ADVOCATES_LIST } from '../data/advocates';
 import { useCart } from '../context/CartContext';
+import { AdvocateWallaLogo } from './AdvocateWallaLogo';
 
 interface HeroProps {
   onExploreServices: () => void;
@@ -32,6 +33,13 @@ export const Hero: React.FC<HeroProps> = ({
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
+          {/* Bilingual Brand Badge */}
+          <div className="flex justify-center mb-4">
+            <div className="inline-flex p-2 px-4 rounded-2xl bg-white/95 border border-slate-200/90 shadow-xs backdrop-blur-xs">
+              <AdvocateWallaLogo size="sm" showSubtitle={true} showDevnagriBadge={true} />
+            </div>
+          </div>
+
           {/* Trust pill with Calling Announcement */}
           <div className="inline-flex flex-wrap items-center justify-center gap-2 mb-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-amber-300 text-xs font-semibold tracking-wide uppercase shadow-xs">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, MessageSquare, ShieldCheck, Send, ArrowRight, Phone, Mail, User, FileText, Sparkles } from 'lucide-react';
+import { X, CheckCircle2, MessageSquare, ShieldCheck, Send, ArrowRight, Phone, Mail, User, FileText, Sparkles, CreditCard, ExternalLink } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { BUSINESS_CONFIG } from '../data/config';
 import { getCartEnquiryWhatsAppUrl } from '../utils/whatsapp';
@@ -29,6 +29,46 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
     subtotal: number;
     formData: EnquiryFormData;
   } | null>(null);
+
+  const handleRazorpayCheckout = () => {
+    const merchantId = BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf';
+    const amountToPay = submittedSnapshot?.subtotal || subtotal;
+
+    if (typeof (window as any).Razorpay !== 'undefined') {
+      try {
+        const options = {
+          key: merchantId,
+          amount: amountToPay * 100,
+          currency: 'INR',
+          name: 'ADVOCAT वाला (Advocate Walla)',
+          description: `Legal Services Checkout - Ref: ${enquiryRef || 'ADV-PORTAL'}`,
+          image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=200',
+          prefill: {
+            name: submittedSnapshot?.formData.fullName || formData.fullName,
+            contact: submittedSnapshot?.formData.phone || formData.phone,
+            email: submittedSnapshot?.formData.email || formData.email || 'consult@advocatwalla.com',
+          },
+          notes: {
+            merchant_id: merchantId,
+            enquiry_ref: enquiryRef || 'DIRECT',
+          },
+          theme: {
+            color: '#0f172a',
+          },
+          handler: function (response: any) {
+            alert(`Payment received successfully! Razorpay Payment ID: ${response.razorpay_payment_id}`);
+          },
+        };
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+        return;
+      } catch (err) {
+        console.warn('Razorpay checkout trigger fallback:', err);
+      }
+    }
+
+    window.open(BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar', '_blank');
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -170,12 +210,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
                 </div>
               </div>
 
-              {/* Next Steps Box */}
-              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/70 text-left text-xs sm:text-sm text-amber-900">
-                <p className="font-bold mb-1">What Happens Next?</p>
-                <p className="text-slate-700">
-                  {BUSINESS_CONFIG.advocateName} will contact you within 2–4 working hours to review your requirements, confirm the appointment/drafting details, and share payment details.
+              {/* Next Steps Box & Instant Razorpay Payment Option */}
+              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/70 text-left text-xs sm:text-sm text-amber-900 space-y-2">
+                <p className="font-bold mb-1">Payment & Confirmation Steps</p>
+                <p className="text-slate-700 leading-relaxed">
+                  {BUSINESS_CONFIG.advocateName} will contact you within 2–4 working hours to confirm your requirements. You can also make direct advance payment securely via Razorpay:
                 </p>
+                <div className="pt-1 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    id="checkout-razorpay-direct-btn"
+                    onClick={handleRazorpayCheckout}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Pay Online via Razorpay Gateway</span>
+                    <ExternalLink className="w-3 h-3 ml-0.5" />
+                  </button>
+                  <span className="font-mono text-[10px] bg-white border border-amber-300 text-amber-900 px-2 py-1 rounded-md font-semibold">
+                    Merchant ID: {BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf'}
+                  </span>
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -195,10 +250,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
                 </a>
 
                 <button
-                  onClick={onClose}
-                  className="px-5 py-3 rounded-xl bg-slate-100 text-slate-800 font-semibold hover:bg-slate-200 transition-colors cursor-pointer text-xs sm:text-sm"
+                  type="button"
+                  id="checkout-success-razorpay-btn"
+                  onClick={handleRazorpayCheckout}
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors shadow-md text-xs sm:text-sm cursor-pointer"
                 >
-                  Done & Close
+                  <CreditCard className="w-4 h-4" />
+                  <span>Pay Now ({BUSINESS_CONFIG.currency}{submittedSnapshot.subtotal.toLocaleString('en-IN')})</span>
+                </button>
+
+                <button
+                  onClick={onClose}
+                  className="px-4 py-3 rounded-xl bg-slate-100 text-slate-800 font-semibold hover:bg-slate-200 transition-colors cursor-pointer text-xs sm:text-sm"
+                >
+                  Close
                 </button>
               </div>
             </div>
@@ -272,7 +337,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
                         setFormData({ ...formData, phone: e.target.value });
                         if (errors.phone) setErrors({ ...errors, phone: '' });
                       }}
-                      placeholder="+91 98765 43210"
+                      placeholder="+91 98670 15157"
                       className={`w-full pl-10 pr-4 py-2.5 bg-white border rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all ${
                         errors.phone ? 'border-rose-400 bg-rose-50/20' : 'border-slate-200'
                       }`}
@@ -354,6 +419,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <span>Information submitted is protected by Advocate-Client Confidentiality.</span>
+              </div>
+
+              {/* Payment Methods Info Banner */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <CreditCard className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                  <span>
+                    Direct Online Payment: <strong className="text-slate-900 font-mono">{BUSINESS_CONFIG.razorpayHandle || 'razorpay.me/@abhilendrakumar'}</strong> (UPI, Cards, GPay, NetBanking)
+                  </span>
+                </div>
+                <a
+                  href={BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold border border-blue-200 transition-colors whitespace-nowrap"
+                >
+                  <span>Pay Now via Razorpay</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
 
               {/* Action Buttons */}

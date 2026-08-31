@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, MessageSquare, Mail, MapPin, Clock, Send, CheckCircle2, ShieldCheck, Scale } from 'lucide-react';
+import { Phone, MessageSquare, Mail, MapPin, Clock, Send, CheckCircle2, ShieldCheck, Scale, CreditCard, ExternalLink } from 'lucide-react';
 import { BUSINESS_CONFIG } from '../data/config';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 
@@ -135,6 +135,32 @@ export const ContactSection: React.FC = () => {
                   <span>WhatsApp</span>
                 </a>
               </div>
+
+              {/* Direct Razorpay Payment Card */}
+              <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200/80 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold text-blue-950">
+                    <CreditCard className="w-4 h-4 text-blue-600" />
+                    <span>Direct Online Payment / Retainer</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-200/70 text-blue-800">
+                    Razorpay
+                  </span>
+                </div>
+                <p className="text-slate-600 leading-snug">
+                  Pay consultation fees, notice drafting fees or advance retainers via UPI, Cards, GPay, or NetBanking:
+                </p>
+                <a
+                  id="contact-razorpay-direct-btn"
+                  href={BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-between w-full px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold transition-colors shadow-xs"
+                >
+                  <span className="truncate">{BUSINESS_CONFIG.razorpayHandle || 'razorpay.me/@abhilendrakumar'}</span>
+                  <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 ml-1.5" />
+                </a>
+              </div>
             </div>
 
             {/* Confidentiality Reminder */}
@@ -231,7 +257,7 @@ export const ContactSection: React.FC = () => {
                           setForm({ ...form, phone: e.target.value });
                           if (errors.phone) setErrors({ ...errors, phone: '' });
                         }}
-                        placeholder="+91 98765 43210"
+                        placeholder="+91 98670 15157"
                         className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all ${
                           errors.phone ? 'border-rose-400' : 'border-slate-200'
                         }`}

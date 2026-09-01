@@ -12,7 +12,8 @@ import {
   UserCheck, 
   Calculator,
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  Video
 } from 'lucide-react';
 import { BUSINESS_CONFIG } from '../data/config';
 import { ADVOCATES_LIST } from '../data/advocates';
@@ -151,12 +152,22 @@ export const Hero: React.FC<HeroProps> = ({
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
-                  id="hero-call-advocate-btn"
-                  onClick={() => startCallWithAdvocate(leadAdvocate, selectedMinutes)}
-                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm hover:bg-amber-300 transition-all shadow-xs cursor-pointer"
+                  id="hero-video-call-advocate-btn"
+                  onClick={() => startCallWithAdvocate(leadAdvocate, selectedMinutes, 'video_call')}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 text-slate-950 font-bold text-xs sm:text-sm hover:from-amber-300 hover:to-amber-200 transition-all shadow-xs active:scale-98 cursor-pointer"
                 >
-                  <PhoneCall className="w-3.5 h-3.5 text-slate-950" />
-                  <span>Call Adv. Seema Jha (₹{selectedMinutes * 10})</span>
+                  <Video className="w-3.5 h-3.5 text-slate-950" />
+                  <span>Video Call (₹{selectedMinutes * 10})</span>
+                </button>
+
+                <button
+                  id="hero-call-advocate-btn"
+                  onClick={() => startCallWithAdvocate(leadAdvocate, selectedMinutes, 'instant_phone')}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-all shadow-xs cursor-pointer"
+                  title="Direct Voice Call"
+                >
+                  <PhoneCall className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden xs:inline">Voice</span>
                 </button>
 
                 <button

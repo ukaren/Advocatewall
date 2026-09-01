@@ -1,6 +1,6 @@
 {
   "name": "ADVOCAT वाला (Advocate Walla) - Legal Services Marketplace",
   "description": "ADVOCAT वाला (एडवोकेट वाला) - Professional legal consultations, statutory notices drafting, contract reviews, and online legal advisory in India.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

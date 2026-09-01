@@ -27,7 +27,13 @@ interface CartContextType {
   setIsCallModalOpen: (open: boolean) => void;
   callDurationMinutes: number;
   setCallDurationMinutes: (minutes: number) => void;
-  startCallWithAdvocate: (advocate: AdvocateProfile, minutes?: number) => void;
+  initialCallMode: 'instant_phone' | 'video_call' | 'whatsapp_call' | 'scheduled_call';
+  setInitialCallMode: (mode: 'instant_phone' | 'video_call' | 'whatsapp_call' | 'scheduled_call') => void;
+  startCallWithAdvocate: (
+    advocate: AdvocateProfile,
+    minutes?: number,
+    mode?: 'instant_phone' | 'video_call' | 'whatsapp_call' | 'scheduled_call'
+  ) => void;
   activePolicyModal: string | null;
   setActivePolicyModal: (policy: string | null) => void;
   isN8NModalOpen: boolean;
@@ -57,6 +63,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [selectedAdvocateForCall, setSelectedAdvocateForCall] = useState<AdvocateProfile | null>(null);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [callDurationMinutes, setCallDurationMinutes] = useState(15);
+  const [initialCallMode, setInitialCallMode] = useState<'instant_phone' | 'video_call' | 'whatsapp_call' | 'scheduled_call'>('video_call');
   const [activePolicyModal, setActivePolicyModal] = useState<string | null>(null);
   const [isN8NModalOpen, setIsN8NModalOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -82,9 +89,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const startCallWithAdvocate = (advocate: AdvocateProfile, minutes: number = 15) => {
+  const startCallWithAdvocate = (
+    advocate: AdvocateProfile,
+    minutes: number = 15,
+    mode: 'instant_phone' | 'video_call' | 'whatsapp_call' | 'scheduled_call' = 'video_call'
+  ) => {
     setSelectedAdvocateForCall(advocate);
     setCallDurationMinutes(minutes);
+    setInitialCallMode(mode);
     setIsCallModalOpen(true);
   };
 
@@ -153,6 +165,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsCallModalOpen,
         callDurationMinutes,
         setCallDurationMinutes,
+        initialCallMode,
+        setInitialCallMode,
         startCallWithAdvocate,
         activePolicyModal,
         setActivePolicyModal,

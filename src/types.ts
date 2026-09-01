@@ -34,7 +34,7 @@ export interface CallBookingData {
   clientName: string;
   clientPhone: string;
   matterCategory: string;
-  callType: 'instant_phone' | 'whatsapp_call' | 'scheduled_call';
+  callType: 'instant_phone' | 'video_call' | 'whatsapp_call' | 'scheduled_call';
   scheduledTime?: string;
   notes?: string;
 }

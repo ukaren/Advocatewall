@@ -14,7 +14,8 @@ import {
   Phone,
   Timer,
   GraduationCap,
-  FileCheck
+  FileCheck,
+  Video
 } from 'lucide-react';
 import { ADVOCATES_LIST } from '../data/advocates';
 import { AdvocateProfile } from '../types';
@@ -209,12 +210,22 @@ export const AdvocatesSection: React.FC<AdvocatesSectionProps> = ({ onOpenPaymen
                 )}
 
                 <button
-                  id={`call-advocate-btn-${advocate.id}`}
-                  onClick={() => startCallWithAdvocate(advocate, 15)}
-                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer"
+                  id={`video-call-advocate-btn-${advocate.id}`}
+                  onClick={() => startCallWithAdvocate(advocate, 15, 'video_call')}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-slate-950 text-xs sm:text-sm font-black transition-all shadow-lg hover:shadow-amber-400/20 active:scale-98 cursor-pointer"
                 >
-                  <PhoneCall className="w-4 h-4 text-slate-950 animate-bounce" />
-                  <span>Call Adv. Seema Jha (₹10/m)</span>
+                  <Video className="w-4 h-4 text-slate-950" />
+                  <span>Video Call (₹10/m)</span>
+                </button>
+
+                <button
+                  id={`call-advocate-btn-${advocate.id}`}
+                  onClick={() => startCallWithAdvocate(advocate, 15, 'instant_phone')}
+                  className="inline-flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+                  title="Direct Phone Call"
+                >
+                  <PhoneCall className="w-4 h-4 text-amber-400" />
+                  <span>Voice Call</span>
                 </button>
 
                 <a

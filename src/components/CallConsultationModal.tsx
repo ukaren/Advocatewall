@@ -26,7 +26,15 @@ import {
   Zap,
   ArrowRight,
   Wallet,
-  PlusCircle
+  PlusCircle,
+  Video,
+  VideoOff,
+  Camera,
+  Printer,
+  Download,
+  Share2,
+  FileText,
+  Award
 } from 'lucide-react';
 import { AdvocateProfile } from '../types';
 import { useCart } from '../context/CartContext';
@@ -34,6 +42,7 @@ import { useWallet } from '../context/WalletContext';
 import { BUSINESS_CONFIG } from '../data/config';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 import { triggerTelephonyCall } from '../utils/telephony';
+import { VideoConsultationRoom, VideoCallSummary } from './VideoConsultationRoom';
 
 interface CallConsultationModalProps {
   advocate: AdvocateProfile | null;
@@ -44,12 +53,14 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
   advocate,
   onClose,
 }) => {
-  const { callDurationMinutes, setCallDurationMinutes, addToast } = useCart();
+  const { callDurationMinutes, setCallDurationMinutes, initialCallMode, addToast } = useCart();
   const { balance, hasSufficientBalance, deductWallet, openWalletWithTopup } = useWallet();
 
-  const [currentStep, setCurrentStep] = useState<'details' | 'payment' | 'calling' | 'booked'>('details');
+  const [currentStep, setCurrentStep] = useState<'details' | 'payment' | 'calling' | 'video_room' | 'video_summary' | 'booked'>('details');
   const [selectedMinutes, setSelectedMinutes] = useState<number>(callDurationMinutes || 15);
-  const [callMode, setCallMode] = useState<'instant_phone' | 'whatsapp_call' | 'scheduled_call'>('instant_phone');
+  const [callMode, setCallMode] = useState<'video_call' | 'instant_phone' | 'whatsapp_call' | 'scheduled_call'>(
+    initialCallMode || 'video_call'
+  );
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [matterType, setMatterType] = useState('Property / Civil Dispute');
@@ -66,6 +77,7 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
   const [callConnected, setCallConnected] = useState(false);
   const [callTimer, setCallTimer] = useState(0);
   const [bookingRef, setBookingRef] = useState('');
+  const [videoSummary, setVideoSummary] = useState<VideoCallSummary | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const upiId = 'abhilendrakumar@okhdfcbank';
@@ -76,10 +88,16 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
     }
   }, [callDurationMinutes]);
 
+  useEffect(() => {
+    if (initialCallMode) {
+      setCallMode(initialCallMode);
+    }
+  }, [initialCallMode]);
+
   // Handle escape key and body scroll lock
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && currentStep !== 'calling') onClose();
+      if (e.key === 'Escape' && currentStep !== 'calling' && currentStep !== 'video_room') onClose();
     };
     if (advocate) {
       document.body.style.overflow = 'hidden';
@@ -220,6 +238,12 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
       customN8nUrl: customN8n,
     }).catch((err) => console.warn('Telephony dispatch error:', err));
 
+    if (callMode === 'video_call') {
+      setCurrentStep('video_room');
+      addToast(`Payment verified! Entering Advocate ${advocate.name}'s Virtual Chamber...`, 'success');
+      return;
+    }
+
     if (callMode === 'whatsapp_call') {
       const text = `Hello ${advocate.name},\n\nI have confirmed payment for a *${selectedMinutes}-Minute Legal Consultation Call* via WhatsApp.\n\n*Consultation & Payment Details:*\n• Client: ${clientName}\n• Phone: ${clientPhone}\n• Legal Matter: ${matterType}\n• Duration: ${selectedMinutes} minutes (Fee: ₹${totalCost})\n• Payment Status: Paid / Verified ${transactionRef ? `(Ref: ${transactionRef})` : ''}\n• Notes: ${notes || 'Ready to consult'}\n\nPlease start the WhatsApp consultation call.`;
       const url = getDirectWhatsAppUrl(text);
@@ -257,6 +281,23 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
     return getDirectWhatsAppUrl(text);
   };
 
+  if (currentStep === 'video_room') {
+    return (
+      <VideoConsultationRoom
+        advocate={advocate}
+        durationMinutes={selectedMinutes}
+        clientName={clientName || 'Client'}
+        clientPhone={clientPhone || '+91 98670 15157'}
+        matterType={matterType}
+        onEndCall={(summary) => {
+          setVideoSummary(summary);
+          setCurrentStep('video_summary');
+          addToast('Video consultation concluded. Official Chamber Slip generated.', 'info');
+        }}
+      />
+    );
+  }
+
   return (
     <div
       id="call-consultation-modal"
@@ -269,8 +310,146 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
         className="relative w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ================= STEP: ACTIVE CALL IN PROGRESS ================= */}
-        {currentStep === 'calling' ? (
+        {/* ================= STEP: VIDEO CONSULTATION SUMMARY & RECEIPT SLIP ================= */}
+        {currentStep === 'video_summary' && videoSummary ? (
+          <div className="p-6 sm:p-8 bg-slate-50 text-slate-900">
+            {/* Header / Seal */}
+            <div className="text-center pb-6 border-b border-slate-200">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-500 text-emerald-700 mb-3 shadow-xs">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <div className="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold tracking-wide uppercase mb-2">
+                Advocate Walla • Official Chamber Record
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black font-display text-slate-900">
+                Virtual Chamber Consultation Summary
+              </h3>
+              <p className="text-xs text-slate-600 mt-1">
+                Bar Council Enrolment: <strong className="text-slate-900">MAH/2841/2020</strong> • Ref: <span className="font-mono font-bold text-amber-700">{videoSummary.consultationId}</span>
+              </p>
+            </div>
+
+            {/* Attendance & Billing Details */}
+            <div className="my-5 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3 text-xs sm:text-sm">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-slate-500">Legal Counsel:</span>
+                <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-amber-600" />
+                  {videoSummary.advocateName}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-slate-500">Client Name & Phone:</span>
+                <span className="font-semibold text-slate-900">
+                  {videoSummary.clientName} ({videoSummary.clientPhone})
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-slate-500">Matter Category:</span>
+                <span className="font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-xs">
+                  {videoSummary.matterType}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="text-slate-500">Duration Elapsed:</span>
+                <span className="font-mono font-bold text-slate-900 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />
+                  {Math.floor(videoSummary.durationSeconds / 60)}m {videoSummary.durationSeconds % 60}s ({selectedMinutes}m booked)
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-slate-500 font-semibold">Total Consultation Fee:</span>
+                <span className="text-base font-extrabold text-emerald-700">
+                  ₹{videoSummary.totalCost} (Paid & Verified)
+                </span>
+              </div>
+            </div>
+
+            {/* Recorded Consultation Notes / Advice */}
+            {videoSummary.notes && (
+              <div className="mb-5 p-4 rounded-2xl bg-amber-50/70 border border-amber-200">
+                <h4 className="text-xs font-bold text-amber-950 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-amber-700" />
+                  <span>Chamber Session Notes & Advice:</span>
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+                  {videoSummary.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Action Buttons: Print, WhatsApp Share, Download, Close */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-amber-400" />
+                <span>Print Advice Slip</span>
+              </button>
+
+              <a
+                href={getDirectWhatsAppUrl(
+                  `*Official Chamber Consultation Record*\n• Ref: ${videoSummary.consultationId}\n• Advocate: ${videoSummary.advocateName}\n• Client: ${videoSummary.clientName}\n• Duration: ${Math.floor(videoSummary.durationSeconds / 60)}m ${videoSummary.durationSeconds % 60}s\n• Fee Paid: ₹${videoSummary.totalCost}\n• Matter: ${videoSummary.matterType}\n${videoSummary.notes ? `• Advice Notes: ${videoSummary.notes}` : ''}\n\nGenerated by Advocate Walla Virtual Chambers.`
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Share on WhatsApp</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const element = document.createElement('a');
+                  const file = new Blob([
+                    `======================================================\n` +
+                    `ADVOCAT वाला (एडवोकेट वाला) • OFFICIAL CHAMBER SLIP\n` +
+                    `Advocate: ${videoSummary.advocateName} (B.A. LL.B. - High Court Practice)\n` +
+                    `Reference ID: ${videoSummary.consultationId}\n` +
+                    `Date: ${new Date(videoSummary.timestamp).toLocaleString('en-IN')}\n` +
+                    `------------------------------------------------------\n` +
+                    `Client: ${videoSummary.clientName} (${videoSummary.clientPhone})\n` +
+                    `Matter: ${videoSummary.matterType}\n` +
+                    `Duration: ${Math.floor(videoSummary.durationSeconds / 60)} mins ${videoSummary.durationSeconds % 60} secs\n` +
+                    `Amount Paid: INR ${videoSummary.totalCost}\n` +
+                    `------------------------------------------------------\n` +
+                    `CHAMBER ADVICE & NOTES:\n` +
+                    `${videoSummary.notes || 'Legal advice imparted live in Chamber Video Room.'}\n` +
+                    `======================================================\n`
+                  ], { type: 'text/plain' });
+                  element.href = URL.createObjectURL(file);
+                  element.download = `Chamber-Slip-${videoSummary.consultationId}.txt`;
+                  document.body.appendChild(element);
+                  element.click();
+                  document.body.removeChild(element);
+                  addToast('Consultation Slip downloaded successfully', 'success');
+                }}
+                className="py-2.5 px-4 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-slate-700" />
+                <span>Download Slip</span>
+              </button>
+            </div>
+
+            <div className="mt-5 text-center">
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-xs text-slate-500 hover:text-slate-900 font-bold underline cursor-pointer py-1"
+              >
+                Return to Dashboard / Home
+              </button>
+            </div>
+          </div>
+        ) : currentStep === 'calling' ? (
           <div className="bg-slate-950 text-white p-6 sm:p-10 flex flex-col items-center justify-center text-center min-h-[460px]">
             {/* Pulsing Avatar */}
             <div className="relative mb-6">
@@ -487,7 +666,9 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
                   <div>
                     <span className="text-slate-400 block text-[11px]">Calling Mode</span>
                     <span className="font-semibold text-amber-300 capitalize">
-                      {callMode === 'instant_phone'
+                      {callMode === 'video_call'
+                        ? '📹 HD Video Consultation Room'
+                        : callMode === 'instant_phone'
                         ? 'Direct Phone Call'
                         : callMode === 'whatsapp_call'
                         ? 'WhatsApp Audio/Video'
@@ -948,64 +1129,119 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
 
               {/* 2. Select Calling Facility Mode */}
               <div>
-                <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
-                  2. Choose Calling Mode
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    2. Choose Calling Mode
+                  </label>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span>Video Chamber Active</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Option 1: Live Video Consultation Room */}
+                  <button
+                    type="button"
+                    onClick={() => setCallMode('video_call')}
+                    className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer relative overflow-hidden ${
+                      callMode === 'video_call'
+                        ? 'border-amber-500 bg-amber-50/70 text-slate-900 ring-2 ring-amber-500/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    <div className="p-2 rounded-lg bg-amber-500/20 text-amber-900 flex-shrink-0 mt-0.5">
+                      <Video className="w-4 h-4 text-amber-700" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-xs text-slate-900">HD Video Consultation</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-slate-950">
+                          Recommended
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-tight mt-0.5">
+                        Live 1-on-1 virtual chamber with screen share, live chat & advice notes
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Option 2: Direct Phone Call */}
                   <button
                     type="button"
                     onClick={() => setCallMode('instant_phone')}
                     className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
                       callMode === 'instant_phone'
-                        ? 'border-slate-900 bg-slate-900/5 text-slate-900 ring-1 ring-slate-900'
+                        ? 'border-slate-900 bg-slate-900/5 text-slate-900 ring-2 ring-slate-900/20'
                         : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                     }`}
                   >
-                    <Phone className={`w-4 h-4 mt-0.5 ${callMode === 'instant_phone' ? 'text-amber-600' : 'text-slate-400'}`} />
+                    <div className="p-2 rounded-lg bg-slate-100 text-slate-700 flex-shrink-0 mt-0.5">
+                      <Phone className="w-4 h-4 text-slate-900" />
+                    </div>
                     <div>
                       <div className="font-bold text-xs text-slate-900">Direct Phone Call</div>
-                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                        Instant connection via cellular voice line
+                      <p className="text-[11px] text-slate-600 leading-tight mt-0.5">
+                        Instant connection via secure cellular voice conference line
                       </p>
                     </div>
                   </button>
 
+                  {/* Option 3: WhatsApp Audio/Video */}
                   <button
                     type="button"
                     onClick={() => setCallMode('whatsapp_call')}
                     className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
                       callMode === 'whatsapp_call'
-                        ? 'border-emerald-600 bg-emerald-50/50 text-slate-900 ring-1 ring-emerald-600'
+                        ? 'border-emerald-600 bg-emerald-50/60 text-slate-900 ring-2 ring-emerald-600/20'
                         : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                     }`}
                   >
-                    <MessageSquare className={`w-4 h-4 mt-0.5 ${callMode === 'whatsapp_call' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                    <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700 flex-shrink-0 mt-0.5">
+                      <MessageSquare className="w-4 h-4 text-emerald-700" />
+                    </div>
                     <div>
-                      <div className="font-bold text-xs text-slate-900">WhatsApp Audio/Video</div>
-                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                        Call on WhatsApp with doc sharing
+                      <div className="font-bold text-xs text-slate-900">WhatsApp Audio / Video</div>
+                      <p className="text-[11px] text-slate-600 leading-tight mt-0.5">
+                        Direct consultation over WhatsApp with document upload
                       </p>
                     </div>
                   </button>
 
+                  {/* Option 4: Schedule Consultation */}
                   <button
                     type="button"
                     onClick={() => setCallMode('scheduled_call')}
                     className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
                       callMode === 'scheduled_call'
-                        ? 'border-slate-900 bg-slate-900/5 text-slate-900 ring-1 ring-slate-900'
+                        ? 'border-blue-600 bg-blue-50/60 text-slate-900 ring-2 ring-blue-600/20'
                         : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
                     }`}
                   >
-                    <Calendar className={`w-4 h-4 mt-0.5 ${callMode === 'scheduled_call' ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <div className="p-2 rounded-lg bg-blue-100 text-blue-700 flex-shrink-0 mt-0.5">
+                      <Calendar className="w-4 h-4 text-blue-700" />
+                    </div>
                     <div>
                       <div className="font-bold text-xs text-slate-900">Schedule Later</div>
-                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                        Pick a convenient time slot today/tomorrow
+                      <p className="text-[11px] text-slate-600 leading-tight mt-0.5">
+                        Reserve a convenient slot today or tomorrow with calendar invite
                       </p>
                     </div>
                   </button>
                 </div>
+
+                {/* Video Call Chamber Feature Highlight */}
+                {callMode === 'video_call' && (
+                  <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/80 flex items-center justify-between text-xs text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Camera className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                      <span>Camera & microphone enabled for virtual chamber entry.</span>
+                    </div>
+                    <span className="text-[11px] text-amber-900 font-bold hidden sm:inline-block">
+                      Instant Chamber Attendance Slip Included
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* 3. Client Information Form */}

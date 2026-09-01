@@ -21,7 +21,11 @@ import { AdvocateProfile } from '../types';
 import { useCart } from '../context/CartContext';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 
-export const AdvocatesSection: React.FC = () => {
+interface AdvocatesSectionProps {
+  onOpenPayment?: (amount?: number, purpose?: string) => void;
+}
+
+export const AdvocatesSection: React.FC<AdvocatesSectionProps> = ({ onOpenPayment }) => {
   const { startCallWithAdvocate } = useCart();
   const advocate = ADVOCATES_LIST[0]; // Adv. Seema Jha
 
@@ -194,6 +198,16 @@ export const AdvocatesSection: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                {onOpenPayment && (
+                  <button
+                    onClick={() => onOpenPayment(499, 'Adv. Seema Jha Legal Consultation Fee')}
+                    className="py-3 px-4 rounded-xl bg-slate-850 hover:bg-slate-800 text-amber-300 border border-slate-700 hover:border-amber-400/50 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Pay Consultation / Legal Fee Online"
+                  >
+                    <span>Pay Fee</span>
+                  </button>
+                )}
+
                 <button
                   id={`call-advocate-btn-${advocate.id}`}
                   onClick={() => startCallWithAdvocate(advocate, 15)}

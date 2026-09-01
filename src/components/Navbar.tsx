@@ -10,9 +10,10 @@ interface NavbarProps {
   activeSection: string;
   onNavigate: (sectionId: string) => void;
   onOpenStampModal?: () => void;
+  onOpenPaymentModal?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpenStampModal }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpenStampModal, onOpenPaymentModal }) => {
   const { totalItems, setIsCartOpen, startCallWithAdvocate } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -28,14 +29,16 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
   const navLinks = [
     { id: 'home', label: 'Home' },
     { id: 'advocates', label: 'Advocates & Calling', badge: '₹10/m' },
+    { id: 'payment-gateway', label: 'Pay Fees', badge: 'Gateway' },
+    { id: 'health-checkup', label: 'Legal Health Score', badge: 'Tool' },
+    { id: 'emergency-rights', label: 'Police Rights', badge: 'BNSS' },
+    { id: 'ecourts-guide', label: 'eCourts & CNR', badge: 'Case' },
     { id: 'new-criminal-laws', label: 'BNS 2024 Laws', badge: 'New IPC' },
-    { id: 'notice-generator', label: 'Legal Notice Drafter', badge: 'Drafts' },
+    { id: 'notice-generator', label: 'Notice Drafter', badge: 'Drafts' },
     { id: 'services', label: 'Services' },
-    { id: 'constitution', label: 'Constitution Rules', badge: 'Articles' },
-    { id: 'partner-join', label: 'Join as Partner', badge: 'Apply' },
-    { id: 'why-us', label: 'Why Us' },
+    { id: 'constitution', label: 'Constitution', badge: 'Articles' },
+    { id: 'partner-join', label: 'Join Partner', badge: 'Apply' },
     { id: 'faq', label: 'FAQ' },
-    { id: 'contact', label: 'Contact' },
   ];
 
   const handleLinkClick = (id: string) => {
@@ -91,6 +94,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Payment Gateway Trigger Button */}
+            {onOpenPaymentModal && (
+              <button
+                id="navbar-pay-fee-btn"
+                onClick={onOpenPaymentModal}
+                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-colors cursor-pointer"
+                title="Pay Legal Fees Online"
+              >
+                <span>Pay Fees</span>
+              </button>
+            )}
+
             {/* Quick Instant Call Button */}
             <button
               id="navbar-call-now-btn"

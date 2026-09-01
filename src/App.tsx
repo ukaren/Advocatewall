@@ -3,10 +3,14 @@ import { CartProvider, useCart } from './context/CartContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { AdvocatesSection } from './components/AdvocatesSection';
+import { PaymentGatewaySection } from './components/PaymentGatewaySection';
 import { NewCriminalLawsSection } from './components/NewCriminalLawsSection';
 import { LegalNoticeGeneratorSection } from './components/LegalNoticeGeneratorSection';
 import { JoinAdvocatePartnerSection } from './components/JoinAdvocatePartnerSection';
 import { ConstitutionSection } from './components/ConstitutionSection';
+import { LegalHealthCheckupSection } from './components/LegalHealthCheckupSection';
+import { CitizenEmergencyRightsSection } from './components/CitizenEmergencyRightsSection';
+import { ECourtsCaseStatusGuideSection } from './components/ECourtsCaseStatusGuideSection';
 import { ServiceGrid } from './components/ServiceGrid';
 import { WhyChooseUs } from './components/WhyChooseUs';
 import { HowItWorks } from './components/HowItWorks';
@@ -18,11 +22,13 @@ import { Footer } from './components/Footer';
 import { CartDrawer } from './components/CartDrawer';
 import { ServiceDetailModal } from './components/ServiceDetailModal';
 import { CallConsultationModal } from './components/CallConsultationModal';
+import { PaymentGatewayModal } from './components/PaymentGatewayModal';
 import { StampDutyFeeCalculatorModal } from './components/StampDutyFeeCalculatorModal';
 import { CheckoutModal } from './components/CheckoutModal';
 import { LegalPolicyModal } from './components/LegalPolicyModal';
 import { N8NTelephonyModal } from './components/N8NTelephonyModal';
 import { N8NChatWidget } from './components/N8NChatWidget';
+import { ScrollNavigationControls } from './components/ScrollNavigationControls';
 import { ToastContainer } from './components/Toast';
 import { ServiceItem } from './types';
 import { ADVOCATES_LIST } from './data/advocates';
@@ -30,6 +36,10 @@ import { ADVOCATES_LIST } from './data/advocates';
 const MainContent: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [isStampModalOpen, setIsStampModalOpen] = useState(false);
+  const [isPaymentGatewayModalOpen, setIsPaymentGatewayModalOpen] = useState(false);
+  const [paymentModalAmount, setPaymentModalAmount] = useState(499);
+  const [paymentModalPurpose, setPaymentModalPurpose] = useState('Advocate Consultation Fee (₹10/min or Fixed Advice)');
+
   const {
     selectedServiceForModal,
     setSelectedServiceForModal,
@@ -46,6 +56,12 @@ const MainContent: React.FC = () => {
     addToast,
     startCallWithAdvocate
   } = useCart();
+
+  const handleOpenPaymentGateway = (amount: number = 499, purpose: string = 'Advocate Legal Consultation Fee') => {
+    setPaymentModalAmount(amount);
+    setPaymentModalPurpose(purpose);
+    setIsPaymentGatewayModalOpen(true);
+  };
 
   // Smooth scroll handler
   const scrollToSection = (sectionId: string) => {
@@ -69,6 +85,10 @@ const MainContent: React.FC = () => {
       const sections = [
         'home', 
         'advocates', 
+        'payment-gateway',
+        'health-checkup',
+        'emergency-rights',
+        'ecourts-guide',
         'new-criminal-laws', 
         'notice-generator', 
         'services', 
@@ -106,6 +126,7 @@ const MainContent: React.FC = () => {
         activeSection={activeSection}
         onNavigate={scrollToSection}
         onOpenStampModal={() => setIsStampModalOpen(true)}
+        onOpenPaymentModal={() => handleOpenPaymentGateway(499, 'Advocate Legal Consultation Fee')}
       />
 
       {/* Main Sections */}
@@ -120,14 +141,32 @@ const MainContent: React.FC = () => {
         />
 
         {/* Specialized Advocates Panel & On-Call Legal Counsel */}
-        <AdvocatesSection />
+        <AdvocatesSection 
+          onOpenPayment={(amt, purp) => handleOpenPaymentGateway(amt, purp)}
+        />
 
-        {/* 1. New Criminal Laws 2024-2026: BNS, BNSS & BSA Section Converter & Comparative Law Analyzer */}
+        {/* Payment Gateway Suite Section */}
+        <PaymentGatewaySection
+          onOpenPaymentModal={(amt, purp) => handleOpenPaymentGateway(amt, purp)}
+        />
+
+        {/* 1. Citizen Legal Health & Risk Assessment Interactive Score Tool */}
+        <LegalHealthCheckupSection 
+          onOpenCallModal={() => startCallWithAdvocate(ADVOCATES_LIST[0], 15)}
+        />
+
+        {/* 2. Emergency Police & Arrest Rights Shield (BNSS 2024 Ready) */}
+        <CitizenEmergencyRightsSection />
+
+        {/* 3. National eCourts Case Status & CNR Number Explorer Guide */}
+        <ECourtsCaseStatusGuideSection />
+
+        {/* 4. New Criminal Laws 2024-2026: BNS, BNSS & BSA Section Converter & Comparative Law Analyzer */}
         <NewCriminalLawsSection 
           onOpenCallModal={() => startCallWithAdvocate(ADVOCATES_LIST[0], 15)}
         />
 
-        {/* 2. Instant Court-Ready Statutory Legal Notice & Draft Generator */}
+        {/* 5. Instant Court-Ready Statutory Legal Notice & Draft Generator */}
         <LegalNoticeGeneratorSection
           onOpenCallModal={() => startCallWithAdvocate(ADVOCATES_LIST[0], 15)}
           onShowToast={(msg) => addToast(msg, 'success')}
@@ -173,6 +212,9 @@ const MainContent: React.FC = () => {
         onOpenPolicy={(policy) => setActivePolicyModal(policy)}
       />
 
+      {/* Floating Scroll Navigation Up & Down Arrows */}
+      <ScrollNavigationControls />
+
       {/* Interactive Drawers, Modals & Floating Buttons */}
       <CartDrawer
         onExploreServices={() => scrollToSection('services')}
@@ -189,6 +231,13 @@ const MainContent: React.FC = () => {
           setIsCallModalOpen(false);
           setSelectedAdvocateForCall(null);
         }}
+      />
+
+      <PaymentGatewayModal
+        isOpen={isPaymentGatewayModalOpen}
+        onClose={() => setIsPaymentGatewayModalOpen(false)}
+        defaultAmount={paymentModalAmount}
+        defaultPurpose={paymentModalPurpose}
       />
 
       <StampDutyFeeCalculatorModal

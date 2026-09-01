@@ -59,6 +59,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPolicy }) => {
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate('advocates')}
+                  className="hover:text-white transition-colors cursor-pointer text-amber-300"
+                >
+                  Advocates & Calling (₹10/Min)
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('payment-gateway')}
+                  className="hover:text-white transition-colors cursor-pointer text-amber-400 font-semibold"
+                >
+                  Pay Fees (Payment Gateway)
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate('services')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >

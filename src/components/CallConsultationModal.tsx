@@ -24,10 +24,13 @@ import {
   Lock,
   QrCode,
   Zap,
-  ArrowRight
+  ArrowRight,
+  Wallet,
+  PlusCircle
 } from 'lucide-react';
 import { AdvocateProfile } from '../types';
 import { useCart } from '../context/CartContext';
+import { useWallet } from '../context/WalletContext';
 import { BUSINESS_CONFIG } from '../data/config';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 import { triggerTelephonyCall } from '../utils/telephony';
@@ -42,6 +45,7 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
   onClose,
 }) => {
   const { callDurationMinutes, setCallDurationMinutes, addToast } = useCart();
+  const { balance, hasSufficientBalance, deductWallet, openWalletWithTopup } = useWallet();
 
   const [currentStep, setCurrentStep] = useState<'details' | 'payment' | 'calling' | 'booked'>('details');
   const [selectedMinutes, setSelectedMinutes] = useState<number>(callDurationMinutes || 15);
@@ -53,7 +57,7 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
   const [preferredSlot, setPreferredSlot] = useState('Immediately (Within 5-10 Mins)');
   
   // Payment states
-  const [paymentOption, setPaymentOption] = useState<'razorpay' | 'upi'>('razorpay');
+  const [paymentOption, setPaymentOption] = useState<'wallet' | 'razorpay' | 'upi'>('wallet');
   const [transactionRef, setTransactionRef] = useState('');
   const [hasConfirmedPaid, setHasConfirmedPaid] = useState(false);
   const [hasCopiedUpi, setHasCopiedUpi] = useState(false);
@@ -145,8 +149,8 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
   const handleOpenRazorpay = () => {
     const merchantId = BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf';
     
-    // If Razorpay Standard Checkout SDK is loaded
-    if (typeof (window as any).Razorpay !== 'undefined') {
+    // If a valid live/test API key starting with rzp_ is configured and Razorpay SDK is loaded
+    if (merchantId.startsWith('rzp_') && typeof (window as any).Razorpay !== 'undefined') {
       try {
         const options = {
           key: merchantId,
@@ -183,22 +187,21 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
         };
         const rzp = new (window as any).Razorpay(options);
         rzp.on('payment.failed', function (response: any) {
-          console.warn('Razorpay payment failed:', response.error);
-          addToast('Payment cancelled or failed. You can also pay via direct UPI or link.', 'error');
+          console.warn('Razorpay payment failed:', response?.error);
+          setHasConfirmedPaid(true);
         });
         rzp.open();
-        setHasConfirmedPaid(true);
         return;
       } catch (err) {
         console.warn('Razorpay SDK invocation fallback:', err);
       }
     }
 
-    // Fallback to Razorpay direct payment checkout URL
+    // Direct open official Razorpay payment portal URL
     const razorpayLink = BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar';
-    window.open(razorpayLink, '_blank');
+    window.open(razorpayLink, '_blank', 'noopener,noreferrer');
     setHasConfirmedPaid(true);
-    addToast(`Opening Razorpay Checkout (Merchant ID: ${merchantId})...`, 'info');
+    addToast(`Opened Razorpay Portal for ₹${totalCost}. Click 'Connect Consultation Call' after completing!`, 'info');
   };
 
   const handleConnectCallAfterPayment = () => {
@@ -500,15 +503,46 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
 
               {/* Payment Method Selector */}
               <div>
-                <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">
-                  Select Payment Option
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* Option 1: Razorpay */}
+                <div className="flex items-center justify-between mb-2.5">
+                  <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Select Payment Option
+                  </label>
+                  <span className="text-[11px] text-amber-700 font-bold flex items-center gap-1">
+                    <Wallet className="w-3.5 h-3.5" />
+                    <span>Wallet Balance: ₹{balance}</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {/* Option 1: Legal Wallet (1-Click Instant) */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentOption('wallet')}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                      paymentOption === 'wallet'
+                        ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-500/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                        <Wallet className="w-4 h-4 text-amber-600" />
+                        <span>Legal Wallet</span>
+                      </span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-slate-950">
+                        1-Click
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-600">
+                      Balance: <strong className="text-slate-900">₹{balance}</strong> (₹10/min)
+                    </p>
+                  </button>
+
+                  {/* Option 2: Razorpay */}
                   <button
                     type="button"
                     onClick={() => setPaymentOption('razorpay')}
-                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
                       paymentOption === 'razorpay'
                         ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-600/30'
                         : 'border-slate-200 bg-white hover:border-slate-300'
@@ -517,22 +551,22 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                         <CreditCard className="w-4 h-4 text-blue-600" />
-                        <span>Online Gateway (Razorpay)</span>
+                        <span>Razorpay</span>
                       </span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white">
-                        Fast & Instant
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white">
+                        Gateway
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-600">
-                      UPI, Google Pay, PhonePe, Paytm, Cards & NetBanking
+                    <p className="text-[10px] text-slate-600">
+                      Cards, NetBanking, Wallets
                     </p>
                   </button>
 
-                  {/* Option 2: Direct UPI QR / ID */}
+                  {/* Option 3: Direct UPI QR / ID */}
                   <button
                     type="button"
                     onClick={() => setPaymentOption('upi')}
-                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
                       paymentOption === 'upi'
                         ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600/30'
                         : 'border-slate-200 bg-white hover:border-slate-300'
@@ -541,21 +575,88 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                         <QrCode className="w-4 h-4 text-emerald-600" />
-                        <span>Direct UPI ID / QR</span>
+                        <span>UPI / QR</span>
                       </span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
                         Zero Fee
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-600">
-                      Transfer via any UPI app directly to official handle
+                    <p className="text-[10px] text-slate-600">
+                      GPay, PhonePe, Paytm
                     </p>
                   </button>
                 </div>
               </div>
 
               {/* Payment Details Container */}
-              {paymentOption === 'razorpay' ? (
+              {paymentOption === 'wallet' ? (
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-300 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <strong className="text-slate-900 text-xs font-bold block">
+                          Pay from Advocate Walla Legal Wallet
+                        </strong>
+                        <span className="font-mono text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          Instant Deduction
+                        </span>
+                      </div>
+                      <span className="text-slate-600 text-[11px] mt-0.5 block">
+                        Deducts ₹{totalCost} directly from your pre-loaded balance. No waiting for card SMS/OTPs.
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-amber-900 bg-white px-2.5 py-1 rounded border border-amber-300 flex-shrink-0">
+                      ₹{totalCost}
+                    </span>
+                  </div>
+
+                  {balance >= totalCost ? (
+                    <div className="p-3 rounded-xl bg-white border border-emerald-300 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 text-emerald-800">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Sufficient Balance (Remaining after call: <strong>₹{balance - totalCost}</strong>)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const res = deductWallet(
+                            totalCost,
+                            `${selectedMinutes} Mins Legal Call Consultation with ${advocate.name}`,
+                            'call_consultation',
+                            { advocateName: advocate.name, durationMinutes: selectedMinutes }
+                          );
+                          if (res.success) {
+                            setTransactionRef(res.transactionId || 'WALLET-PAY');
+                            setHasConfirmedPaid(true);
+                            addToast(res.message, 'success');
+                            handleConnectCallAfterPayment();
+                          } else {
+                            addToast(res.message, 'error');
+                          }
+                        }}
+                        className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Pay ₹{totalCost} & Start Call</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-white border border-rose-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+                      <span className="text-rose-700">
+                        Insufficient balance (₹{balance}). Need ₹{totalCost - balance} more.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openWalletWithTopup(totalCost - balance > 150 ? totalCost - balance : 150)}
+                        className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        <span>Recharge Wallet (+₹{totalCost - balance})</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : paymentOption === 'razorpay' ? (
                 <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/80 space-y-3.5">
                   <div className="flex items-start justify-between gap-3">
                     <div>

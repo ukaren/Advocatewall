@@ -77,37 +77,6 @@ export const PaymentGatewaySection: React.FC<PaymentGatewaySectionProps> = ({
   };
 
   const handleLaunchRazorpayDirect = (amt: number, purpose: string) => {
-    const merchantId = BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf';
-    const txnId = `ADV-${Date.now().toString().slice(-6)}`;
-
-    if (typeof (window as any).Razorpay !== 'undefined') {
-      try {
-        const options = {
-          key: merchantId,
-          amount: amt * 100,
-          currency: 'INR',
-          name: 'ADVOCAT वाला (Advocate Walla)',
-          description: `${purpose} - Ref: ${txnId}`,
-          image: '/images/advocate-walla-logo.png',
-          prefill: {
-            name: 'Client',
-            email: 'consult@advocatwalla.com',
-          },
-          theme: {
-            color: '#0f172a',
-          },
-          handler: function (response: any) {
-            alert(`Payment of ₹${amt} successful! Razorpay Payment ID: ${response.razorpay_payment_id}`);
-          },
-        };
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-        return;
-      } catch (err) {
-        console.warn('Razorpay section trigger error:', err);
-      }
-    }
-
     onOpenPaymentModal(amt, purpose);
   };
 

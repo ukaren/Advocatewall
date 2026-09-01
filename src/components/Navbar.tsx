@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Menu, X, Phone, MessageSquare, PhoneCall, Timer } from 'lucide-react';
+import { ShoppingBag, Menu, X, MessageSquare, Wallet } from 'lucide-react';
 import { BUSINESS_CONFIG } from '../data/config';
 import { useCart } from '../context/CartContext';
+import { useWallet } from '../context/WalletContext';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
-import { ADVOCATES_LIST } from '../data/advocates';
 import { AdvocateWallaLogo } from './AdvocateWallaLogo';
 
 interface NavbarProps {
@@ -11,10 +11,18 @@ interface NavbarProps {
   onNavigate: (sectionId: string) => void;
   onOpenStampModal?: () => void;
   onOpenPaymentModal?: () => void;
+  onOpenWalletModal?: (amt?: number) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpenStampModal, onOpenPaymentModal }) => {
-  const { totalItems, setIsCartOpen, startCallWithAdvocate } = useCart();
+export const Navbar: React.FC<NavbarProps> = ({
+  activeSection,
+  onNavigate,
+  onOpenStampModal,
+  onOpenPaymentModal,
+  onOpenWalletModal,
+}) => {
+  const { totalItems, setIsCartOpen } = useCart();
+  const { balance, setIsWalletModalOpen } = useWallet();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -29,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
   const navLinks = [
     { id: 'home', label: 'Home' },
     { id: 'advocates', label: 'Advocates & Calling', badge: '₹10/m' },
+    { id: 'wallet-section', label: 'Legal Wallet', badge: '₹' + balance },
     { id: 'payment-gateway', label: 'Pay Fees', badge: 'Gateway' },
     { id: 'health-checkup', label: 'Legal Health Score', badge: 'Tool' },
     { id: 'emergency-rights', label: 'Police Rights', badge: 'BNSS' },
@@ -44,6 +53,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
   const handleLinkClick = (id: string) => {
     setIsMobileMenuOpen(false);
     onNavigate(id);
+  };
+
+  const handleWalletClick = () => {
+    if (onOpenWalletModal) {
+      onOpenWalletModal();
+    } else {
+      setIsWalletModalOpen(true);
+    }
   };
 
   return (
@@ -94,27 +111,17 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Payment Gateway Trigger Button */}
-            {onOpenPaymentModal && (
-              <button
-                id="navbar-pay-fee-btn"
-                onClick={onOpenPaymentModal}
-                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-colors cursor-pointer"
-                title="Pay Legal Fees Online"
-              >
-                <span>Pay Fees</span>
-              </button>
-            )}
-
-            {/* Quick Instant Call Button */}
+            {/* Legal Wallet Button */}
             <button
-              id="navbar-call-now-btn"
-              onClick={() => startCallWithAdvocate(ADVOCATES_LIST[0], 15)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-amber-400 text-slate-950 hover:bg-amber-300 transition-colors shadow-xs cursor-pointer"
+              id="navbar-wallet-btn"
+              onClick={handleWalletClick}
+              className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-bold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 transition-all shadow-2xs cursor-pointer"
+              title="Open Legal Calling Wallet & Passbook"
             >
-              <PhoneCall className="w-3.5 h-3.5 text-slate-950" />
-              <span className="hidden sm:inline">Call Advocate</span>
-              <span className="text-[11px] font-medium bg-slate-950/10 px-1 py-0.2 rounded">₹10/m</span>
+              <Wallet className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden sm:inline">Wallet:</span>
+              <span className="font-mono text-amber-900 font-extrabold">₹{balance}</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse hidden sm:inline-block" />
             </button>
 
             {/* Direct WhatsApp Callout */}
@@ -191,12 +198,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  startCallWithAdvocate(ADVOCATES_LIST[0], 15);
+                  handleWalletClick();
                 }}
-                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 text-sm font-bold rounded-lg bg-amber-400 text-slate-950 hover:bg-amber-300 transition-colors shadow-xs"
+                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 text-xs font-bold rounded-lg bg-amber-100 text-amber-950 border border-amber-300 transition-colors shadow-xs"
               >
-                <PhoneCall className="w-4 h-4" />
-                <span>Call Advocate Now (from ₹10/min)</span>
+                <Wallet className="w-4 h-4 text-amber-700" />
+                <span>Open Legal Wallet (Balance: ₹{balance})</span>
               </button>
 
               <a
@@ -215,4 +222,5 @@ export const Navbar: React.FC<NavbarProps> = ({ activeSection, onNavigate, onOpe
     </header>
   );
 };
+
 

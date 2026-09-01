@@ -165,3 +165,46 @@ export interface EnquiryFormData {
   selectedServiceIds: string[];
   requirement: string;
 }
+
+export type WalletTransactionType = 'credit' | 'debit';
+
+export type WalletCategory = 
+  | 'welcome_bonus'
+  | 'topup_razorpay'
+  | 'topup_upi'
+  | 'topup_bank'
+  | 'call_consultation'
+  | 'consultation_fee'
+  | 'service_fee'
+  | 'drafting_service'
+  | 'legal_notice'
+  | 'refund'
+  | 'retainer';
+
+export interface WalletTransaction {
+  id: string;
+  type: WalletTransactionType;
+  amount: number;
+  description: string;
+  category: WalletCategory;
+  timestamp: string;
+  referenceId: string;
+  paymentMethod?: 'razorpay' | 'upi' | 'bank_transfer' | 'wallet_balance' | 'promotional';
+  status: 'completed' | 'pending' | 'failed';
+  advocateName?: string;
+  durationMinutes?: number;
+}
+
+export interface WalletAccount {
+  walletId: string;
+  holderName: string;
+  holderPhone: string;
+  balance: number;
+  currency: string;
+  createdAt: string;
+  status: 'active' | 'frozen';
+  totalCredited: number;
+  totalDebited: number;
+  transactions: WalletTransaction[];
+}
+

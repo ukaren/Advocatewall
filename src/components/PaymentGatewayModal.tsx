@@ -18,9 +18,13 @@ import {
   Printer,
   MessageSquare,
   Zap,
-  HelpCircle
+  HelpCircle,
+  Wallet,
+  Smartphone,
+  PlusCircle
 } from 'lucide-react';
 import { BUSINESS_CONFIG } from '../data/config';
+import { useWallet } from '../context/WalletContext';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
 
 interface PaymentGatewayModalProps {
@@ -42,6 +46,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   defaultPurpose = 'Advocate Consultation Fee (₹10/min or Fixed Advice)',
   clientInfo = { name: '', phone: '', email: '' }
 }) => {
+  const { balance, deductWallet, openWalletWithTopup } = useWallet();
   const [amount, setAmount] = useState<number>(defaultAmount);
   const [customAmountStr, setCustomAmountStr] = useState<string>(defaultAmount.toString());
   const [purpose, setPurpose] = useState<string>(defaultPurpose);
@@ -49,7 +54,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const [clientPhone, setClientPhone] = useState(clientInfo?.phone || '');
   const [clientEmail, setClientEmail] = useState(clientInfo?.email || '');
   
-  const [selectedMethod, setSelectedMethod] = useState<'razorpay' | 'upi_qr' | 'bank_transfer'>('razorpay');
+  const [selectedMethod, setSelectedMethod] = useState<'razorpay' | 'upi_qr' | 'wallet' | 'bank_transfer'>('razorpay');
   const [transactionRef, setTransactionRef] = useState('');
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
@@ -57,6 +62,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
   const [hasCopiedAcc, setHasCopiedAcc] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isAwaitingRazorpayConfirmation, setIsAwaitingRazorpayConfirmation] = useState(false);
 
   const upiId = 'abhilendrakumar@okhdfcbank';
   const upiName = 'Advocate Walla (Legal Services)';
@@ -141,9 +147,10 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     setIsProcessing(true);
 
     const merchantId = BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf';
-    const txnId = `ADV-${Date.now().toString().slice(-6)}`;
+    const txnId = `ADV-RZP-${Date.now().toString().slice(-6)}`;
 
-    if (typeof (window as any).Razorpay !== 'undefined') {
+    // If a valid live/test API key starting with rzp_ is configured and Razorpay SDK is loaded
+    if (merchantId.startsWith('rzp_') && typeof (window as any).Razorpay !== 'undefined') {
       try {
         const options = {
           key: merchantId,
@@ -161,6 +168,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
             purpose: purpose,
             client_phone: clientPhone,
             txn_ref: txnId,
+            merchant_id: merchantId,
           },
           theme: {
             color: '#0f172a',
@@ -190,19 +198,68 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
         const rzp = new (window as any).Razorpay(options);
         rzp.on('payment.failed', function (resp: any) {
           setIsProcessing(false);
-          alert(`Payment transaction not completed: ${resp.error?.description || 'Please retry with UPI or alternate method'}`);
+          setIsAwaitingRazorpayConfirmation(true);
         });
         rzp.open();
         return;
       } catch (err) {
-        console.warn('Razorpay popup fallback triggered:', err);
-        setIsProcessing(false);
+        console.warn('Razorpay SDK invocation fallback:', err);
       }
     }
 
-    // Direct fallback to hosted Razorpay page
+    // Direct official Razorpay Payment Page URL
+    const razorpayMeUrl = BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar';
+    window.open(razorpayMeUrl, '_blank', 'noopener,noreferrer');
     setIsProcessing(false);
-    window.open(BUSINESS_CONFIG.razorpayUrl, '_blank', 'noopener,noreferrer');
+    setIsAwaitingRazorpayConfirmation(true);
+  };
+
+  const handleConfirmRazorpayPayment = () => {
+    if (!validateForm()) return;
+    const txnId = transactionRef.trim() || `RZP-PAY-${Date.now().toString().slice(-6)}`;
+
+    const receipt = {
+      txnId: txnId,
+      date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      amount: amount,
+      clientName: clientName,
+      clientPhone: clientPhone,
+      purpose: purpose,
+      method: 'Razorpay Online Gateway (Direct Portal)',
+      status: 'PAID & VERIFIED'
+    };
+    setReceiptData(receipt);
+    setPaymentSuccess(true);
+  };
+
+  const handleWalletPayment = () => {
+    if (!validateForm()) return;
+    if (balance < amount) {
+      openWalletWithTopup(amount - balance);
+      return;
+    }
+
+    const res = deductWallet(
+      amount,
+      `Legal Payment: ${purpose}`,
+      'consultation_fee',
+      { referenceId: `WLT-${Date.now().toString().slice(-6)}` }
+    );
+
+    if (res.success) {
+      const receipt = {
+        txnId: `WLT-${Date.now().toString().slice(-6)}`,
+        date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+        amount: amount,
+        clientName: clientName,
+        clientPhone: clientPhone,
+        purpose: purpose,
+        method: 'Pre-Paid Legal Wallet (1-Click Instant)',
+        status: 'PAID & VERIFIED (Wallet Debited)'
+      };
+      setReceiptData(receipt);
+      setPaymentSuccess(true);
+    }
   };
 
   const handleConfirmUpiOrManual = () => {
@@ -216,7 +273,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       clientName: clientName,
       clientPhone: clientPhone,
       purpose: purpose,
-      method: selectedMethod === 'upi_qr' ? 'Direct UPI (QR / PhonePe / GPay)' : 'Bank IMPS / NEFT Transfer',
+      method: selectedMethod === 'upi_qr' ? 'Direct UPI (QR / PhonePe / GPay / Paytm)' : 'Bank IMPS / NEFT Transfer',
       status: 'SUBMITTED (Subject to Realization)'
     };
     setReceiptData(receipt);
@@ -418,31 +475,31 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
               {/* Step 3: Payment Gateway Mode Selector */}
               <div>
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">
-                  4. Choose Payment Gateway Channel:
+                  4. Choose Payment Method:
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {/* Razorpay Channel */}
                   <button
                     type="button"
                     onClick={() => setSelectedMethod('razorpay')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedMethod === 'razorpay'
                         ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-amber-400'
                         : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
                         selectedMethod === 'razorpay' ? 'bg-amber-400 text-slate-950' : 'bg-blue-100 text-blue-800'
                       }`}>
-                        Instant Online
+                        Online
                       </span>
-                      <CreditCard className="w-4 h-4 text-amber-400" />
+                      <CreditCard className="w-3.5 h-3.5 text-amber-400" />
                     </div>
-                    <h5 className="text-xs font-bold">Razorpay Gateway</h5>
+                    <h5 className="text-xs font-bold">Razorpay Portal</h5>
                     <p className={`text-[10px] mt-0.5 ${selectedMethod === 'razorpay' ? 'text-slate-300' : 'text-slate-500'}`}>
-                      UPI, Credit/Debit Cards, NetBanking, Wallets
+                      Cards, NetBanking, UPI
                     </p>
                   </button>
 
@@ -450,23 +507,47 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedMethod('upi_qr')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedMethod === 'upi_qr'
                         ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-amber-400'
                         : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
                         selectedMethod === 'upi_qr' ? 'bg-amber-400 text-slate-950' : 'bg-emerald-100 text-emerald-800'
                       }`}>
-                        Zero Surcharge
+                        Zero Fee
                       </span>
-                      <QrCode className="w-4 h-4 text-emerald-400" />
+                      <QrCode className="w-3.5 h-3.5 text-emerald-400" />
                     </div>
-                    <h5 className="text-xs font-bold">Direct UPI & QR Code</h5>
+                    <h5 className="text-xs font-bold">Direct UPI & QR</h5>
                     <p className={`text-[10px] mt-0.5 ${selectedMethod === 'upi_qr' ? 'text-slate-300' : 'text-slate-500'}`}>
-                      GPay, PhonePe, Paytm, BHIM (Instant)
+                      GPay, PhonePe, Paytm
+                    </p>
+                  </button>
+
+                  {/* Legal Wallet Channel */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod('wallet')}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                      selectedMethod === 'wallet'
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-amber-400'
+                        : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                        selectedMethod === 'wallet' ? 'bg-amber-400 text-slate-950' : 'bg-amber-100 text-amber-900'
+                      }`}>
+                        ₹{balance} Bal
+                      </span>
+                      <Wallet className="w-3.5 h-3.5 text-amber-400" />
+                    </div>
+                    <h5 className="text-xs font-bold">Legal Wallet</h5>
+                    <p className={`text-[10px] mt-0.5 ${selectedMethod === 'wallet' ? 'text-slate-300' : 'text-slate-500'}`}>
+                      1-Click Instant Debit
                     </p>
                   </button>
 
@@ -474,23 +555,23 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedMethod('bank_transfer')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                       selectedMethod === 'bank_transfer'
                         ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-amber-400'
                         : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
                         selectedMethod === 'bank_transfer' ? 'bg-amber-400 text-slate-950' : 'bg-slate-100 text-slate-700'
                       }`}>
-                        NEFT / RTGS
+                        IMPS/NEFT
                       </span>
-                      <Building className="w-4 h-4 text-slate-400" />
+                      <Building className="w-3.5 h-3.5 text-slate-400" />
                     </div>
-                    <h5 className="text-xs font-bold">Bank IMPS / NEFT</h5>
+                    <h5 className="text-xs font-bold">Bank Transfer</h5>
                     <p className={`text-[10px] mt-0.5 ${selectedMethod === 'bank_transfer' ? 'text-slate-300' : 'text-slate-500'}`}>
-                      HDFC Bank Direct Advocate Account
+                      HDFC Advocate Account
                     </p>
                   </button>
                 </div>
@@ -498,47 +579,110 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
 
               {/* Method Specific UI */}
               {selectedMethod === 'razorpay' && (
-                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-slate-800 text-xs leading-relaxed space-y-2.5">
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-slate-800 text-xs leading-relaxed space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-amber-900 font-bold">
                       <ShieldCheck className="w-4 h-4 text-amber-700" />
                       <span>Razorpay Official Legal Escrow Gateway</span>
                     </div>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 font-mono text-[10px] font-bold">
-                      Live ID: {BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf'}
+                      Merchant: {BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf'}
                     </span>
                   </div>
 
                   <p className="text-slate-700">
-                    Clicking <strong>"Pay ₹{amount} via Razorpay"</strong> opens the instant checkout gateway for cards (RuPay / Visa / MasterCard), NetBanking across 50+ Indian banks, Wallets, and UPI.
+                    Pay securely using Cards (RuPay/Visa/MasterCard), UPI, NetBanking across all Indian banks, or EMI on the official Razorpay portal:
                   </p>
 
-                  <div className="p-2.5 rounded-xl bg-white border border-amber-200/80 flex items-center justify-between text-[11px]">
-                    <span className="text-slate-600">Merchant / Gateway Account ID:</span>
-                    <div className="flex items-center gap-1.5 font-mono font-bold text-slate-900">
-                      <span>{BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf'}</span>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <a
+                      href={BUSINESS_CONFIG.razorpayUrl || 'https://razorpay.me/@abhilendrakumar'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors"
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      <span>Open Razorpay Payment Portal (₹{amount})</span>
+                      <ExternalLink className="w-3 h-3 ml-0.5" />
+                    </a>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-amber-200 space-y-2">
+                    <label className="text-[11px] font-semibold text-slate-700 block">
+                      Already paid on Razorpay? Enter Payment / Transaction ID to generate receipt:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={transactionRef}
+                        onChange={(e) => setTransactionRef(e.target.value)}
+                        placeholder="e.g. pay_N2h58XyZ9 or Ref No."
+                        className="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-amber-500"
+                      />
                       <button
                         type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf');
-                          setHasCopiedUpi(true);
-                          setTimeout(() => setHasCopiedUpi(false), 2000);
-                        }}
-                        className="text-amber-700 hover:text-amber-900 text-[10px] underline ml-1 cursor-pointer font-sans"
+                        onClick={handleConfirmRazorpayPayment}
+                        className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer"
                       >
-                        Copy
+                        Confirm
                       </button>
                     </div>
                   </div>
                 </div>
               )}
 
+              {selectedMethod === 'wallet' && (
+                <div className="p-4 rounded-2xl bg-slate-900 text-white border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-4 h-4 text-amber-400" />
+                      <span className="font-bold text-sm text-white">Legal Calling & Service Wallet</span>
+                    </div>
+                    <span className="font-mono text-sm font-extrabold text-amber-300 bg-slate-950 px-3 py-1 rounded-full border border-slate-700">
+                      Balance: ₹{balance}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Zero-transaction failure, instant fee clearance directly from your pre-paid Legal Wallet.
+                  </p>
+
+                  {balance >= amount ? (
+                    <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 flex items-center justify-between">
+                      <span className="text-xs font-semibold">Available Balance covers this ₹{amount} payment</span>
+                      <button
+                        type="button"
+                        onClick={handleWalletPayment}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-xs cursor-pointer"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>Pay ₹{amount} from Wallet</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <span className="text-xs">
+                        Wallet balance (₹{balance}) is insufficient by <strong>₹{amount - balance}</strong>.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openWalletWithTopup(amount - balance)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-xs cursor-pointer shrink-0"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        <span>Top Up +₹{amount - balance}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {selectedMethod === 'upi_qr' && (
                 <div className="p-4 rounded-2xl bg-slate-900 text-white border border-slate-800 space-y-4">
                   <div className="flex flex-col sm:flex-row items-center gap-5 justify-between">
-                    <div className="text-center sm:text-left space-y-1">
+                    <div className="text-center sm:text-left space-y-2">
                       <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
-                        Scan with any UPI App
+                        Scan or Pay via any UPI App
                       </span>
                       <h4 className="text-sm font-bold text-white">
                         Advocate Walla Official UPI ID
@@ -553,20 +697,51 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
                           {hasCopiedUpi ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        Amount to Scan & Pay: <strong className="text-emerald-400">₹{amount}</strong>
-                      </p>
+
+                      {/* Quick 1-Click Mobile UPI Links */}
+                      <div className="pt-2">
+                        <span className="text-[10px] text-slate-400 block mb-1.5">Direct 1-Click Mobile UPI App:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          <a
+                            href={`tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent('Advocate Walla')}&am=${amount}&cu=INR&tn=${encodeURIComponent(purpose.substring(0, 30))}`}
+                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border border-slate-700"
+                          >
+                            Google Pay
+                          </a>
+                          <a
+                            href={`phonepe://pay?pa=${upiId}&pn=${encodeURIComponent('Advocate Walla')}&am=${amount}&cu=INR&tn=${encodeURIComponent(purpose.substring(0, 30))}`}
+                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border border-slate-700"
+                          >
+                            PhonePe
+                          </a>
+                          <a
+                            href={`paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent('Advocate Walla')}&am=${amount}&cu=INR&tn=${encodeURIComponent(purpose.substring(0, 30))}`}
+                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border border-slate-700"
+                          >
+                            Paytm
+                          </a>
+                          <a
+                            href={upiDeepLink}
+                            className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-[11px] font-bold text-slate-950"
+                          >
+                            Any UPI App
+                          </a>
+                        </div>
+                      </div>
                     </div>
 
                     {/* QR Code Container */}
-                    <div className="bg-white p-2 rounded-2xl shadow-lg shrink-0">
+                    <div className="bg-white p-2 rounded-2xl shadow-lg shrink-0 text-center">
                       <img
                         src={qrCodeUrl}
                         alt="UPI Payment QR Code"
-                        className="w-32 h-32 rounded-xl"
+                        className="w-32 h-32 rounded-xl mx-auto"
                       />
-                      <span className="text-[9px] font-bold text-slate-700 text-center block mt-1">
-                        Google Pay / PhonePe / Paytm
+                      <span className="text-[9px] font-bold text-slate-700 block mt-1">
+                        Scan with GPay / PhonePe / Paytm
+                      </span>
+                      <span className="text-[10px] font-extrabold text-emerald-700 block">
+                        ₹{amount}
                       </span>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, MessageSquare, ShieldCheck, Send, ArrowRight, Phone, Mail, User, FileText, Sparkles, CreditCard, ExternalLink } from 'lucide-react';
+import { X, CheckCircle2, MessageSquare, ShieldCheck, Send, ArrowRight, Phone, Mail, User, FileText, Sparkles, CreditCard, ExternalLink, Wallet, Zap, PlusCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWallet } from '../context/WalletContext';
 import { BUSINESS_CONFIG } from '../data/config';
 import { getCartEnquiryWhatsAppUrl } from '../utils/whatsapp';
 import { EnquiryFormData } from '../types';
@@ -10,7 +11,8 @@ interface CheckoutModalProps {
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
-  const { cart, subtotal, totalItems, clearCart, isCheckoutOpen } = useCart();
+  const { cart, subtotal, totalItems, clearCart, isCheckoutOpen, addToast } = useCart();
+  const { balance, deductWallet, openWalletWithTopup } = useWallet();
 
   const [formData, setFormData] = useState<EnquiryFormData>({
     fullName: '',
@@ -29,6 +31,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
     subtotal: number;
     formData: EnquiryFormData;
   } | null>(null);
+  const [isPaidViaWallet, setIsPaidViaWallet] = useState(false);
+
+  const handleWalletCheckout = () => {
+    const amountToPay = submittedSnapshot?.subtotal || subtotal;
+    if (balance < amountToPay) {
+      addToast(`Insufficient wallet balance (₹${balance}). Please top up ₹${amountToPay - balance}.`, 'error');
+      openWalletWithTopup(amountToPay - balance);
+      return;
+    }
+
+    const res = deductWallet(
+      amountToPay,
+      `Legal Services Checkout: ${cart.map(c => c.service.name).join(', ')}`,
+      'drafting_service',
+      { referenceId: enquiryRef || `ENQ-${Math.floor(100000 + Math.random() * 900000)}` }
+    );
+
+    if (res.success) {
+      setIsPaidViaWallet(true);
+      addToast(res.message, 'success');
+    } else {
+      addToast(res.message, 'error');
+    }
+  };
+
 
   const handleRazorpayCheckout = () => {
     const merchantId = BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf';
@@ -210,27 +237,64 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ onClose }) => {
                 </div>
               </div>
 
-              {/* Next Steps Box & Instant Razorpay Payment Option */}
-              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/70 text-left text-xs sm:text-sm text-amber-900 space-y-2">
-                <p className="font-bold mb-1">Payment & Confirmation Steps</p>
-                <p className="text-slate-700 leading-relaxed">
-                  {BUSINESS_CONFIG.advocateName} will contact you within 2–4 working hours to confirm your requirements. You can also make direct advance payment securely via Razorpay:
-                </p>
-                <div className="pt-1 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    id="checkout-razorpay-direct-btn"
-                    onClick={handleRazorpayCheckout}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer"
-                  >
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span>Pay Online via Razorpay Gateway</span>
-                    <ExternalLink className="w-3 h-3 ml-0.5" />
-                  </button>
-                  <span className="font-mono text-[10px] bg-white border border-amber-300 text-amber-900 px-2 py-1 rounded-md font-semibold">
-                    Merchant ID: {BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf'}
+              {/* Next Steps Box & Instant Razorpay / Wallet Payment Option */}
+              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/70 text-left text-xs sm:text-sm text-amber-900 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold">Payment & Confirmation Options</p>
+                  <span className="text-[11px] font-bold text-amber-950 flex items-center gap-1 bg-amber-200/60 px-2 py-0.5 rounded-full">
+                    <Wallet className="w-3 h-3 text-amber-700" />
+                    <span>Wallet Balance: ₹{balance}</span>
                   </span>
                 </div>
+
+                {isPaidViaWallet ? (
+                  <div className="p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>Payment completed via Legal Wallet! Ref: {enquiryRef}</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-slate-700 leading-relaxed text-xs">
+                      {BUSINESS_CONFIG.advocateName} will contact you within 2–4 working hours to confirm your requirements. You can also make direct advance payment via your Legal Wallet or Razorpay:
+                    </p>
+                    <div className="pt-1 flex flex-wrap items-center gap-2">
+                      {balance >= (submittedSnapshot?.subtotal || subtotal) ? (
+                        <button
+                          type="button"
+                          id="checkout-wallet-direct-btn"
+                          onClick={handleWalletCheckout}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-xs cursor-pointer"
+                        >
+                          <Zap className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Pay ₹{submittedSnapshot?.subtotal || subtotal} via Legal Wallet</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => openWalletWithTopup((submittedSnapshot?.subtotal || subtotal) - balance)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition-colors shadow-xs cursor-pointer"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5" />
+                          <span>Top Up Wallet (+₹{(submittedSnapshot?.subtotal || subtotal) - balance})</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        id="checkout-razorpay-direct-btn"
+                        onClick={handleRazorpayCheckout}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Pay Online via Razorpay</span>
+                        <ExternalLink className="w-3 h-3 ml-0.5" />
+                      </button>
+                      <span className="font-mono text-[10px] bg-white border border-amber-300 text-amber-900 px-2 py-1 rounded-md font-semibold">
+                        Merchant ID: {BUSINESS_CONFIG.merchantId || 'TSsxsVDG3CXIOf'}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Action Buttons */}

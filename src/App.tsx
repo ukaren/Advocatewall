@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { CartProvider, useCart } from './context/CartContext';
+import { WalletProvider, useWallet } from './context/WalletContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { AdvocatesSection } from './components/AdvocatesSection';
+import { LegalWalletSection } from './components/LegalWalletSection';
 import { PaymentGatewaySection } from './components/PaymentGatewaySection';
 import { NewCriminalLawsSection } from './components/NewCriminalLawsSection';
 import { LegalNoticeGeneratorSection } from './components/LegalNoticeGeneratorSection';
@@ -23,6 +25,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { ServiceDetailModal } from './components/ServiceDetailModal';
 import { CallConsultationModal } from './components/CallConsultationModal';
 import { PaymentGatewayModal } from './components/PaymentGatewayModal';
+import { LegalWalletModal } from './components/LegalWalletModal';
 import { StampDutyFeeCalculatorModal } from './components/StampDutyFeeCalculatorModal';
 import { CheckoutModal } from './components/CheckoutModal';
 import { LegalPolicyModal } from './components/LegalPolicyModal';
@@ -57,6 +60,8 @@ const MainContent: React.FC = () => {
     startCallWithAdvocate
   } = useCart();
 
+  const { isWalletModalOpen, setIsWalletModalOpen, openWalletWithTopup } = useWallet();
+
   const handleOpenPaymentGateway = (amount: number = 499, purpose: string = 'Advocate Legal Consultation Fee') => {
     setPaymentModalAmount(amount);
     setPaymentModalPurpose(purpose);
@@ -85,6 +90,7 @@ const MainContent: React.FC = () => {
       const sections = [
         'home', 
         'advocates', 
+        'wallet-section',
         'payment-gateway',
         'health-checkup',
         'emergency-rights',
@@ -127,6 +133,7 @@ const MainContent: React.FC = () => {
         onNavigate={scrollToSection}
         onOpenStampModal={() => setIsStampModalOpen(true)}
         onOpenPaymentModal={() => handleOpenPaymentGateway(499, 'Advocate Legal Consultation Fee')}
+        onOpenWalletModal={(amt) => openWalletWithTopup(amt)}
       />
 
       {/* Main Sections */}
@@ -143,6 +150,11 @@ const MainContent: React.FC = () => {
         {/* Specialized Advocates Panel & On-Call Legal Counsel */}
         <AdvocatesSection 
           onOpenPayment={(amt, purp) => handleOpenPaymentGateway(amt, purp)}
+        />
+
+        {/* Dedicated Pre-Paid Legal Calling Wallet Section */}
+        <LegalWalletSection
+          onOpenWalletModal={(amt) => openWalletWithTopup(amt)}
         />
 
         {/* Payment Gateway Suite Section */}
@@ -240,6 +252,11 @@ const MainContent: React.FC = () => {
         defaultPurpose={paymentModalPurpose}
       />
 
+      <LegalWalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
+
       <StampDutyFeeCalculatorModal
         isOpen={isStampModalOpen}
         onClose={() => setIsStampModalOpen(false)}
@@ -270,9 +287,12 @@ const MainContent: React.FC = () => {
 export default function App() {
   return (
     <CartProvider>
-      <MainContent />
+      <WalletProvider>
+        <MainContent />
+      </WalletProvider>
     </CartProvider>
   );
 }
+
 
 

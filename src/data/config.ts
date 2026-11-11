@@ -20,7 +20,7 @@ export const BUSINESS_CONFIG: BusinessConfig = {
   currency: "₹",
   experienceYears: 4,
   satisfiedClients: "650+",
-  n8nChatWebhookUrl: "https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat",
+  n8nChatWebhookUrl: "https://sneha92.app.n8n.cloud/webhook/e4b448fe-d0a3-4afa-be23-de6261832b21/chat",
   n8nVideoTokenWebhookUrl: "https://sneha92.app.n8n.cloud/webhook/advocatewalla-video-token",
   n8nBookConsultationWebhookUrl: "https://sneha92.app.n8n.cloud/webhook/advocatewalla-book-consultation",
   merchantId: "TSsxsVDG3CXIOf",

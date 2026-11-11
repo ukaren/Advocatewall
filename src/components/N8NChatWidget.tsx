@@ -7,7 +7,7 @@ export const N8NChatWidget: React.FC = () => {
   useEffect(() => {
     const webhookUrl =
       BUSINESS_CONFIG.n8nChatWebhookUrl ||
-      'https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat';
+      'https://sneha92.app.n8n.cloud/webhook/e4b448fe-d0a3-4afa-be23-de6261832b21/chat';
 
     try {
       createChat({

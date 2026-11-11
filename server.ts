@@ -46,7 +46,7 @@ interface PartnerApplicationRecord {
 const partnerApplications: PartnerApplicationRecord[] = [];
 
 // N8N Webhook endpoints configured for ADVOCAT WALLA
-const DEFAULT_CHAT_WEBHOOK = "https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat";
+const DEFAULT_CHAT_WEBHOOK = "https://sneha92.app.n8n.cloud/webhook/e4b448fe-d0a3-4afa-be23-de6261832b21/chat";
 const DEFAULT_VIDEO_TOKEN_WEBHOOK = "https://sneha92.app.n8n.cloud/webhook/advocatewalla-video-token";
 const DEFAULT_BOOK_CONSULTATION_WEBHOOK = "https://sneha92.app.n8n.cloud/webhook/advocatewalla-book-consultation";
 

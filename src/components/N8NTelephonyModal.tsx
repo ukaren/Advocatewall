@@ -268,9 +268,9 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
                 {/* 3. AI Chatbot */}
                 <button
                   type="button"
-                  onClick={() => setWebhookUrl('https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat')}
+                  onClick={() => setWebhookUrl('https://sneha92.app.n8n.cloud/webhook/e4b448fe-d0a3-4afa-be23-de6261832b21/chat')}
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    webhookUrl === 'https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat'
+                    webhookUrl === 'https://sneha92.app.n8n.cloud/webhook/e4b448fe-d0a3-4afa-be23-de6261832b21/chat'
                       ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}

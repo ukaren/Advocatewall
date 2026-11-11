@@ -94,6 +94,8 @@ export interface BusinessConfig {
   experienceYears: number;
   satisfiedClients: string;
   n8nChatWebhookUrl?: string;
+  n8nVideoTokenWebhookUrl?: string;
+  n8nBookConsultationWebhookUrl?: string;
   merchantId?: string;
   razorpayMerchantId?: string;
   razorpayUrl?: string;

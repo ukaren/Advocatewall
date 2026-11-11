@@ -45,11 +45,16 @@ interface PartnerApplicationRecord {
 
 const partnerApplications: PartnerApplicationRecord[] = [];
 
+// N8N Webhook endpoints configured for ADVOCAT WALLA
+const DEFAULT_CHAT_WEBHOOK = "https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat";
+const DEFAULT_VIDEO_TOKEN_WEBHOOK = "https://sneha92.app.n8n.cloud/webhook/advocatewalla-video-token";
+const DEFAULT_BOOK_CONSULTATION_WEBHOOK = "https://sneha92.app.n8n.cloud/webhook/advocatewalla-book-consultation";
+
 // In-memory log of telephony & n8n webhook events for real-time visibility
 interface TelephonyLog {
   id: string;
   timestamp: string;
-  type: 'call_trigger' | 'scheduled_booking' | 'enquiry' | 'n8n_test' | 'inbound_webhook';
+  type: 'call_trigger' | 'scheduled_booking' | 'enquiry' | 'n8n_test' | 'inbound_webhook' | 'video_token' | 'payment_booking';
   clientName: string;
   clientPhone: string;
   advocateName: string;
@@ -79,13 +84,15 @@ function logTelephonyEvent(log: Omit<TelephonyLog, 'id' | 'timestamp'>) {
 
 // 1. Health & Configuration endpoint
 app.get("/api/telephony/config", (req, res) => {
-  const n8nWebhookConfigured = Boolean(process.env.N8N_WEBHOOK_URL);
+  const n8nWebhookConfigured = Boolean(process.env.N8N_WEBHOOK_URL || DEFAULT_BOOK_CONSULTATION_WEBHOOK);
   const telephonyProvider = process.env.TELEPHONY_PROVIDER || "n8n_webhook";
   
   res.json({
     status: "ok",
     n8nWebhookConfigured,
-    n8nWebhookUrl: process.env.N8N_WEBHOOK_URL ? `${process.env.N8N_WEBHOOK_URL.slice(0, 20)}...` : null,
+    n8nChatWebhookUrl: process.env.N8N_CHAT_WEBHOOK_URL || DEFAULT_CHAT_WEBHOOK,
+    n8nVideoTokenWebhookUrl: process.env.N8N_VIDEO_TOKEN_URL || DEFAULT_VIDEO_TOKEN_WEBHOOK,
+    n8nBookConsultationWebhookUrl: process.env.N8N_BOOK_CONSULTATION_URL || DEFAULT_BOOK_CONSULTATION_WEBHOOK,
     telephonyProvider,
     supportedProviders: ["n8n_webhook", "exotel", "twilio", "custom_webhook"],
     activeAdvocate: "Advocate Seema Jha",
@@ -93,6 +100,8 @@ app.get("/api/telephony/config", (req, res) => {
     features: {
       instantCallBridge: true,
       n8nWorkflowTrigger: true,
+      videoCallingToken: true,
+      paymentConsultationBooking: true,
       smsWhatsAppDispatch: true,
       callLogging: true,
     }
@@ -119,8 +128,7 @@ app.post("/api/telephony/trigger-call", async (req, res) => {
       return res.status(400).json({ error: "clientName and clientPhone are required." });
     }
 
-    const DEFAULT_N8N_URL = "https://sneha12345678.app.n8n.cloud/webhook/132d0d77-462f-4145-9ad3-834d69e75eaf/chat";
-    const targetWebhook = customN8nUrl || process.env.N8N_WEBHOOK_URL || DEFAULT_N8N_URL;
+    const targetWebhook = customN8nUrl || process.env.N8N_WEBHOOK_URL || DEFAULT_BOOK_CONSULTATION_WEBHOOK;
     const provider = targetWebhook ? "n8n_webhook" : (process.env.TELEPHONY_PROVIDER || "telephony_bridge");
 
     const payload = {
@@ -210,9 +218,8 @@ app.post("/api/telephony/trigger-call", async (req, res) => {
 // 3. Test n8n Webhook Endpoint
 app.post("/api/telephony/test-n8n", async (req, res) => {
   try {
-    const { webhookUrl } = req.body;
-    const DEFAULT_N8N_URL = "https://sneha12345678.app.n8n.cloud/webhook/132d0d77-462f-4145-9ad3-834d69e75eaf/chat";
-    const targetUrl = webhookUrl || process.env.N8N_WEBHOOK_URL || DEFAULT_N8N_URL;
+    const { webhookUrl, testType = "ping" } = req.body;
+    const targetUrl = webhookUrl || process.env.N8N_WEBHOOK_URL || DEFAULT_BOOK_CONSULTATION_WEBHOOK;
 
     if (!targetUrl) {
       return res.status(400).json({
@@ -222,7 +229,7 @@ app.post("/api/telephony/test-n8n", async (req, res) => {
     }
 
     const testPayload = {
-      event: "test_n8n_telephony_ping",
+      event: testType === "video" ? "test_video_token_ping" : "test_n8n_telephony_ping",
       timestamp: new Date().toISOString(),
       message: "Advocate Legal Portal Telephony Integration Ping",
       portal: {
@@ -235,7 +242,7 @@ app.post("/api/telephony/test-n8n", async (req, res) => {
         clientPhone: "+919812345678",
         matterCategory: "Property Dispute Consultation",
         durationMinutes: 15,
-        totalCost: 149,
+        totalCost: 150,
       }
     };
 
@@ -263,11 +270,11 @@ app.post("/api/telephony/test-n8n", async (req, res) => {
       clientPhone: "+919812345678",
       advocateName: "Advocate Seema Jha",
       durationMinutes: 15,
-      totalCost: 149,
+      totalCost: 150,
       status: response.ok ? "success" : "failed",
       provider: "n8n_webhook",
       n8nStatus: `HTTP ${response.status}`,
-      details: `Test payload delivered in ${durationMs}ms`,
+      details: `Test payload delivered to ${targetUrl} in ${durationMs}ms`,
       responsePayload: responseData,
     });
 
@@ -275,7 +282,8 @@ app.post("/api/telephony/test-n8n", async (req, res) => {
       success: response.ok,
       httpStatus: response.status,
       durationMs,
-      message: response.ok ? "n8n Webhook responded successfully!" : `n8n returned HTTP ${response.status}`,
+      targetUrl,
+      message: response.ok ? "n8n Webhook responded successfully!" : `n8n returned HTTP ${response.status} (${response.statusText})`,
       responseData,
     });
   } catch (error: any) {
@@ -286,7 +294,199 @@ app.post("/api/telephony/test-n8n", async (req, res) => {
   }
 });
 
-// 4. Get Telephony & N8N Logs
+// 4. Video Calling Token endpoint -> n8n advocatewalla-video-token
+app.post("/api/video/token", async (req, res) => {
+  try {
+    const {
+      clientName = "Client",
+      clientPhone = "",
+      advocateName = "Advocate Seema Jha",
+      matterType = "Legal Consultation",
+      durationMinutes = 15,
+      roomName = `chamber-${Date.now()}`,
+      customWebhook = ""
+    } = req.body;
+
+    const targetUrl = customWebhook || process.env.N8N_VIDEO_TOKEN_URL || DEFAULT_VIDEO_TOKEN_WEBHOOK;
+    const generatedToken = `VID-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const payload = {
+      event: "advocatewalla_video_token_request",
+      timestamp: new Date().toISOString(),
+      roomName,
+      sessionToken: generatedToken,
+      client: {
+        name: clientName,
+        phone: clientPhone,
+      },
+      advocate: {
+        name: advocateName,
+      },
+      consultation: {
+        matterType,
+        durationMinutes,
+      }
+    };
+
+    let webhookStatus = "token_issued";
+    let webhookData: any = null;
+
+    try {
+      const response = await fetch(targetUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "AdvocateWalla-Video-Service/1.0",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      webhookStatus = response.ok ? `HTTP ${response.status} OK` : `HTTP ${response.status} (${response.statusText})`;
+      try {
+        webhookData = await response.json();
+      } catch {
+        webhookData = { statusText: response.statusText };
+      }
+    } catch (err: any) {
+      console.warn("Video Token Webhook dispatch note:", err.message);
+      webhookStatus = `Notice: ${err.message}`;
+    }
+
+    logTelephonyEvent({
+      type: "video_token",
+      clientName,
+      clientPhone: clientPhone || "N/A",
+      advocateName,
+      durationMinutes,
+      status: "success",
+      provider: "n8n_video_token",
+      n8nStatus: webhookStatus,
+      details: `Generated chamber video token (${generatedToken}) for ${clientName}. Webhook: ${targetUrl}`,
+      responsePayload: webhookData,
+    });
+
+    res.json({
+      success: true,
+      token: webhookData?.token || webhookData?.sessionToken || generatedToken,
+      roomUrl: webhookData?.roomUrl || webhookData?.meetingUrl || null,
+      roomName,
+      n8nWebhookUrl: targetUrl,
+      n8nStatus: webhookStatus,
+      message: "Virtual Chamber video consultation session initialized",
+    });
+  } catch (error: any) {
+    console.error("Video token error:", error);
+    res.status(500).json({ error: error.message || "Failed to generate video consultation token." });
+  }
+});
+
+// 5. Payment & Consultation Booking endpoint -> n8n advocatewalla-book-consultation
+app.post("/api/payments/book-consultation", async (req, res) => {
+  try {
+    const {
+      clientName,
+      clientPhone,
+      clientEmail = "",
+      advocateName = "Advocate Seema Jha",
+      advocatePhone = "+919867015157",
+      durationMinutes = 15,
+      totalCost = 150,
+      matterCategory = "General Legal Consultation",
+      callMode = "video_call",
+      paymentMethod = "razorpay",
+      transactionRef = "",
+      notes = "",
+      bookingRef = `BOOK-${Date.now().toString().slice(-6)}`,
+      customWebhook = ""
+    } = req.body;
+
+    const targetUrl = customWebhook || process.env.N8N_BOOK_CONSULTATION_URL || DEFAULT_BOOK_CONSULTATION_WEBHOOK;
+
+    const payload = {
+      event: "advocatewalla_consultation_booked",
+      timestamp: new Date().toISOString(),
+      source: "Advocate Walla Legal Platform",
+      bookingRef,
+      client: {
+        name: clientName || "Valued Client",
+        phone: clientPhone || "N/A",
+        email: clientEmail,
+      },
+      advocate: {
+        name: advocateName,
+        phone: advocatePhone,
+      },
+      consultation: {
+        matterCategory,
+        durationMinutes,
+        callMode,
+        notes,
+      },
+      payment: {
+        amount: totalCost,
+        currency: "INR",
+        method: paymentMethod,
+        transactionRef: transactionRef || `TXN-${Date.now()}`,
+        status: "CONFIRMED_PAID",
+      }
+    };
+
+    let webhookStatus = "dispatched";
+    let webhookData: any = null;
+
+    try {
+      const response = await fetch(targetUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "AdvocateWalla-Payment-Booking/1.0",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      webhookStatus = response.ok ? `HTTP ${response.status} OK` : `HTTP ${response.status} (${response.statusText})`;
+      try {
+        webhookData = await response.json();
+      } catch {
+        webhookData = { statusText: response.statusText };
+      }
+    } catch (err: any) {
+      console.warn("Payment Consultation Booking Webhook dispatch note:", err.message);
+      webhookStatus = `Notice: ${err.message}`;
+    }
+
+    logTelephonyEvent({
+      type: "payment_booking",
+      clientName: clientName || "Client",
+      clientPhone: clientPhone || "N/A",
+      advocateName,
+      durationMinutes,
+      totalCost,
+      matterCategory,
+      status: "success",
+      provider: "n8n_book_consultation",
+      n8nStatus: webhookStatus,
+      details: `Payment confirmed (₹${totalCost}) and consultation booked (${callMode}). Webhook: ${targetUrl}`,
+      responsePayload: webhookData,
+    });
+
+    res.json({
+      success: true,
+      bookingRef,
+      amount: totalCost,
+      paymentMethod,
+      n8nWebhookUrl: targetUrl,
+      n8nStatus: webhookStatus,
+      message: "Consultation booking & payment dispatch logged successfully.",
+      webhookResponse: webhookData,
+    });
+  } catch (error: any) {
+    console.error("Error booking consultation / payment webhook:", error);
+    res.status(500).json({ error: error.message || "Failed to process consultation booking." });
+  }
+});
+
+// 6. Get Telephony & N8N Logs
 app.get("/api/telephony/logs", (req, res) => {
   res.json({
     total: telephonyLogs.length,
@@ -411,8 +611,7 @@ app.post("/api/advocates/join-partner", async (req, res) => {
     });
 
     // Optionally forward payload to N8N webhook if configured
-    const DEFAULT_N8N_URL = "https://sneha12345678.app.n8n.cloud/webhook/132d0d77-462f-4145-9ad3-834d69e75eaf/chat";
-    const targetWebhook = process.env.N8N_WEBHOOK_URL || DEFAULT_N8N_URL;
+    const targetWebhook = process.env.N8N_WEBHOOK_URL || DEFAULT_BOOK_CONSULTATION_WEBHOOK;
 
     if (targetWebhook) {
       try {

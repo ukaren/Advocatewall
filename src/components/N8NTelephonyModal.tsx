@@ -29,7 +29,11 @@ interface N8NTelephonyModalProps {
 export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'webhook' | 'telephony' | 'logs'>('webhook');
   const [webhookUrl, setWebhookUrl] = useState(() => {
-    return localStorage.getItem('n8n_telephony_webhook_url') || 'https://sneha12345678.app.n8n.cloud/webhook/132d0d77-462f-4145-9ad3-834d69e75eaf/chat';
+    return (
+      localStorage.getItem('n8n_telephony_webhook_url') ||
+      BUSINESS_CONFIG.n8nBookConsultationWebhookUrl ||
+      'https://sneha92.app.n8n.cloud/webhook/advocatewalla-book-consultation'
+    );
   });
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
@@ -213,15 +217,86 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
               </div>
             </div>
 
-            {/* Webhook URL Input */}
+            {/* Active n8n Webhook Presets */}
             <div className="space-y-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                Your n8n Webhook URL (Production or Test)
+                Active Configured n8n Webhook Pipelines
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* 1. Payment & Booking */}
+                <button
+                  type="button"
+                  onClick={() => setWebhookUrl('https://sneha92.app.n8n.cloud/webhook/advocatewalla-book-consultation')}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    webhookUrl === 'https://sneha92.app.n8n.cloud/webhook/advocatewalla-book-consultation'
+                      ? 'border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-xs text-slate-900">💳 Payment & Booking</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate font-mono">
+                    advocatewalla-book-consultation
+                  </p>
+                </button>
+
+                {/* 2. Video Calling Token */}
+                <button
+                  type="button"
+                  onClick={() => setWebhookUrl('https://sneha92.app.n8n.cloud/webhook/advocatewalla-video-token')}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    webhookUrl === 'https://sneha92.app.n8n.cloud/webhook/advocatewalla-video-token'
+                      ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-500/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-xs text-slate-900">📹 Video Calling Token</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate font-mono">
+                    advocatewalla-video-token
+                  </p>
+                </button>
+
+                {/* 3. AI Chatbot */}
+                <button
+                  type="button"
+                  onClick={() => setWebhookUrl('https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat')}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    webhookUrl === 'https://sneha92.app.n8n.cloud/webhook/f34dd539-a2e0-4b4f-9088-19a6dd29d389/chat'
+                      ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-500/20'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-xs text-slate-900">💬 Legal AI Chat Bot</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate font-mono">
+                    .../chat
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Webhook URL Input & Test Ping */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                Target n8n Webhook URL to Test or Customize
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="url"
-                  placeholder="https://n8n.yourdomain.com/webhook/legal-call-trigger"
+                  placeholder="https://n8n.yourdomain.com/webhook/..."
                   value={webhookUrl}
                   onChange={(e) => setWebhookUrl(e.target.value)}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white font-mono"
@@ -245,7 +320,7 @@ export const N8NTelephonyModal: React.FC<N8NTelephonyModalProps> = ({ isOpen, on
                 </button>
               </div>
               <p className="text-[11px] text-slate-500">
-                Configure in <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">.env.example</code> under <code className="text-slate-800 font-semibold">N8N_WEBHOOK_URL</code> or input directly above for instant browser session persistence.
+                Persistence: Stored in browser storage and dispatched automatically across booking, video calling, and consultation events.
               </p>
             </div>
 

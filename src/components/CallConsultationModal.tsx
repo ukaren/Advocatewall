@@ -41,7 +41,7 @@ import { useCart } from '../context/CartContext';
 import { useWallet } from '../context/WalletContext';
 import { BUSINESS_CONFIG } from '../data/config';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
-import { triggerTelephonyCall } from '../utils/telephony';
+import { triggerTelephonyCall, bookConsultationPayment } from '../utils/telephony';
 import { VideoConsultationRoom, VideoCallSummary } from './VideoConsultationRoom';
 
 interface CallConsultationModalProps {
@@ -223,6 +223,25 @@ export const CallConsultationModal: React.FC<CallConsultationModalProps> = ({
   };
 
   const handleConnectCallAfterPayment = () => {
+    const bookingId = bookingRef || `BK-${Date.now().toString().slice(-6)}`;
+    setBookingRef(bookingId);
+
+    // Dispatch verified booking & payment payload to n8n webhook (https://sneha92.app.n8n.cloud/webhook/advocatewalla-book-consultation)
+    bookConsultationPayment({
+      clientName: clientName || 'Valued Client',
+      clientPhone: clientPhone || '+91 98670 15157',
+      advocateName: advocate.name,
+      advocatePhone: advocate.phone,
+      durationMinutes: selectedMinutes,
+      totalCost,
+      matterCategory: matterType,
+      callMode,
+      paymentMethod: paymentOption,
+      transactionRef: transactionRef || 'ONLINE_VERIFIED',
+      notes,
+      bookingRef: bookingId,
+    }).catch((err) => console.warn('Book consultation webhook dispatch note:', err));
+
     // Dispatch asynchronous trigger to telephony bridge
     const customN8n = localStorage.getItem('n8n_telephony_webhook_url') || undefined;
     triggerTelephonyCall({

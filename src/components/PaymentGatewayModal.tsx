@@ -26,6 +26,7 @@ import {
 import { BUSINESS_CONFIG } from '../data/config';
 import { useWallet } from '../context/WalletContext';
 import { getDirectWhatsAppUrl } from '../utils/whatsapp';
+import { bookConsultationPayment } from '../utils/telephony';
 
 interface PaymentGatewayModalProps {
   isOpen: boolean;
@@ -187,6 +188,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
             };
             setReceiptData(receipt);
             setPaymentSuccess(true);
+            dispatchPaymentBooking(receipt, 'razorpay');
           },
           modal: {
             ondismiss: function () {
@@ -214,6 +216,20 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     setIsAwaitingRazorpayConfirmation(true);
   };
 
+  const dispatchPaymentBooking = (receipt: any, method: string) => {
+    bookConsultationPayment({
+      clientName: clientName || receipt.clientName || 'Client',
+      clientPhone: clientPhone || receipt.clientPhone || '',
+      clientEmail: clientEmail,
+      durationMinutes: 30,
+      totalCost: amount,
+      matterCategory: purpose,
+      paymentMethod: method,
+      transactionRef: receipt.txnId,
+      notes: `Payment Modal Dispatch for: ${purpose}`,
+    }).catch((err) => console.warn('Payment booking webhook dispatch notice:', err));
+  };
+
   const handleConfirmRazorpayPayment = () => {
     if (!validateForm()) return;
     const txnId = transactionRef.trim() || `RZP-PAY-${Date.now().toString().slice(-6)}`;
@@ -230,6 +246,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     };
     setReceiptData(receipt);
     setPaymentSuccess(true);
+    dispatchPaymentBooking(receipt, 'razorpay_direct');
   };
 
   const handleWalletPayment = () => {
@@ -259,6 +276,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
       };
       setReceiptData(receipt);
       setPaymentSuccess(true);
+      dispatchPaymentBooking(receipt, 'wallet');
     }
   };
 
@@ -278,6 +296,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
     };
     setReceiptData(receipt);
     setPaymentSuccess(true);
+    dispatchPaymentBooking(receipt, selectedMethod);
   };
 
   const copyUpiToClipboard = () => {
